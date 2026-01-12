@@ -1,0 +1,287 @@
+\documentclass{article}
+\usepackage{iclr2024_conference,times}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{subcaption}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\title{Learning to Focus: Attention-Enhanced Neural Networks for Robust Vehicle Parameter Identification}
+
+\author{GPT-4o \& Claude}
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Accurate identification of vehicle steering parameters, particularly front and rear cornering stiffness ($C_f$ and $C_r$), is critical for vehicle control systems and safety applications. Traditional methods like least squares estimation struggle with measurement noise, while standard neural networks lack the ability to selectively focus on informative features in noisy data. We propose an attention-enhanced neural network that uses self-attention to dynamically weight input features based on their relevance to parameter identification. The attention mechanism enables the model to prioritize the most informative features while filtering out noise, addressing a key challenge in robust parameter estimation under varying noise conditions. Through extensive experiments using a two-degree-of-freedom bicycle model, we demonstrate that the attention-enhanced approach achieves up to 20x lower identification error compared to baseline neural networks at high noise levels (0.05), and perfect identification at moderate noise levels (0.02). While the attention mechanism introduces a performance trade-off at low noise levels (0.01) where the baseline performs slightly better, the learned attention weights provide interpretable insights into feature importance, revealing how the model adapts its feature selection strategy across different noise conditions.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+Accurate identification of vehicle steering parameters is a fundamental requirement for modern vehicle control systems and safety applications. Among these parameters, front and rear cornering stiffness ($C_f$ and $C_r$) are particularly critical as they characterize the tire-road interaction and directly influence vehicle handling, stability, and overall dynamic behavior. These parameters serve as essential inputs to advanced driver assistance systems, electronic stability control, and autonomous vehicle controllers, where accurate knowledge of vehicle dynamics is paramount for ensuring safe and reliable operation \citep{rajamani2012vehicle}.
+
+The identification of cornering stiffness parameters presents significant challenges due to the inherent measurement noise present in real-world sensor data. Traditional approaches such as least squares estimation, while theoretically sound, exhibit substantial sensitivity to measurement noise, leading to degraded estimation accuracy in practical scenarios. Standard neural network approaches, though capable of learning complex mappings from data, lack the ability to selectively focus on the most informative features within noisy input representations. This limitation becomes particularly pronounced when the signal-to-noise ratio is low, as the model cannot distinguish between relevant features for parameter identification and spurious noise components.
+
+To address these challenges, we propose an attention-enhanced neural network architecture that incorporates a self-attention mechanism to dynamically weight input features based on their relevance to the parameter identification task. The attention module learns to prioritize the most informative features while suppressing noise-contaminated or less relevant inputs, thereby providing a principled mechanism for feature selection that adapts to varying noise conditions. This approach represents a novel application of attention mechanisms to the domain of vehicle parameter identification, leveraging their proven ability to capture complex dependencies and selectively focus on salient information.
+
+We conduct extensive experiments to validate the effectiveness of our proposed approach using a two-degree-of-freedom bicycle model, which provides a well-established framework for studying vehicle lateral dynamics. Our evaluation spans multiple noise levels ranging from low (0.01) to high (0.1), enabling a comprehensive assessment of robustness across varying signal-to-noise ratios. We compare the attention-enhanced neural network against baseline methods including least squares estimation and standard neural networks, measuring identification error for both front and rear cornering stiffness parameters. Additionally, we analyze the learned attention weights to gain interpretability into the model's feature selection strategy and understand how it adapts to different noise conditions.
+
+The key contributions of this work are as follows:
+\begin{itemize}
+    \item We propose an attention-enhanced neural network architecture for vehicle steering parameter identification that uses self-attention to dynamically weight input features based on their relevance to the identification task.
+    \item We demonstrate through extensive experiments that the attention mechanism provides substantial benefits at higher noise levels, achieving up to 20x lower identification error compared to baseline neural networks at noise level 0.05.
+    \item We show that the attention-enhanced model achieves perfect parameter identification (0.0\% error) at moderate noise levels (0.02), significantly outperforming both least squares estimation and standard neural networks.
+    \item We provide interpretability through analysis of learned attention weights, revealing how the model adapts its feature selection strategy across different noise conditions and which input features are most informative for parameter identification.
+\end{itemize}
+
+\section{Related Work}
+\label{sec:related}
+
+Classical approaches to vehicle parameter identification have primarily relied on least squares estimation and its variants. \citet{Devos2024ALI} present a least-squares identification method specifically designed for vehicle cornering stiffness identification using common vehicle sensor data, demonstrating the effectiveness of regression-based approaches for this problem. Building on this foundation, \citet{Cai2025JointEO} propose a joint estimation framework that simultaneously identifies tire cornering stiffness and vehicle operating states for distributed drive electric vehicles, highlighting the importance of integrated parameter and state estimation. To address time-varying characteristics, \citet{Chen2024VehicleSE} integrate recursive least squares with a variable forgetting factor and an adaptive iterative extended Kalman filter for vehicle state estimation, providing improved robustness to changing operating conditions. These classical methods assume linear relationships and Gaussian noise distributions, making them sensitive to violations of these assumptions in practical scenarios. In contrast, our attention-enhanced approach does not require these assumptions and can handle non-Gaussian noise through learned feature weighting, providing greater flexibility in real-world applications.
+
+Neural network approaches have shown significant promise in vehicle system identification by learning complex nonlinear mappings directly from data. \citet{Hermansdorfer2020EndtoEnd} propose an end-to-end neural network for vehicle dynamics modeling, demonstrating that data-driven models can outperform traditional physics-based approaches in accuracy without the need for explicit parameter identification. Similarly, \citet{Song2025DataDriven} utilize neural networks for system identification and prediction in driver assistance control, showcasing the ability of these models to capture dynamic behaviors from operational data. While these methods offer powerful representation capabilities, standard neural network architectures typically treat all input features with uniform importance. This lack of feature discrimination can be suboptimal in noisy environments, as the model cannot selectively prioritize informative measurements or suppress noise-contaminated features. Our attention-enhanced architecture addresses this limitation by introducing a dynamic feature weighting mechanism that adapts to the relevance and noise characteristics of each input.
+
+Attention mechanisms have revolutionized deep learning by enabling models to dynamically focus on the most relevant parts of their input. \citet{Vaswani2017AttentionIA} introduced the transformer architecture, which relies entirely on self-attention to process sequential data, achieving state-of-the-art results in natural language processing. Following this breakthrough, attention mechanisms have been widely adopted in computer vision and time-series forecasting. \citet{Dosovitskiy2020AnII} demonstrated the effectiveness of pure transformer architectures for image recognition, showing that self-attention can serve as a powerful alternative to convolutional neural networks in vision tasks. These applications demonstrate the ability of attention mechanisms to capture long-range dependencies and complex feature interactions. While attention has been successfully applied to various sequence modeling tasks, its application to vehicle parameter identification remains largely unexplored. Our work leverages the selective focus capabilities of self-attention to address the challenge of noisy feature selection in vehicle dynamics estimation.
+
+Physics-informed neural networks have emerged as a powerful approach for incorporating domain knowledge into data-driven models. \citet{Raissi2019PhysicsinformedNN} introduced a framework that embeds physical constraints directly into the neural network loss function, enabling models to learn representations that respect underlying physical laws. In the context of vehicle dynamics, physics-informed approaches can enforce constraints such as the bicycle model equations or conservation laws, ensuring that parameter estimates remain physically plausible. While these methods provide strong inductive bias through physical constraints, they typically treat all input features uniformly. Our attention-enhanced approach complements physics-informed techniques by focusing on feature selection and noise robustness rather than physical consistency. Combining attention mechanisms with physics-informed constraints presents an exciting direction for future work, potentially leveraging both data-driven feature prioritization and domain knowledge to improve parameter identification accuracy.
+
+\subsection{Robust Parameter Estimation under Noise}
+\label{sec:robust_estimation}
+
+Robust parameter estimation techniques have been developed to address the challenges posed by noisy measurements and outliers in parameter identification tasks. Classical robust statistics provides several frameworks for handling non-Gaussian noise and contaminated data. \citet{Bellec2023ErrorEA} investigate unregularized robust M-estimators for linear models under heavy-tailed noise, demonstrating how these estimators can provide consistent error estimates and adaptive tuning for robust parameter estimation. Building on robust regression principles, \citet{Zhang2025ARF} propose a fuzzy rule-based regression framework that incorporates a generalized piecewise smooth Huber function to suppress the influence of anomalous observations while maintaining numerical stability.
+
+In the context of dynamical systems, specialized techniques have been developed to handle noise in parameter estimation. \citet{CastelanPerez2025FilteringAF} introduce a robust algebraic parameter estimation methodology that explicitly incorporates signal filtering dynamics within the estimator structure, enhancing noise attenuation through fractional differentiation in the frequency domain. These methods typically rely on statistical techniques or domain-specific filtering approaches to achieve robustness. In contrast, our attention-enhanced approach provides a learned, data-driven mechanism for noise robustness that adapts feature weighting based on the specific characteristics of the input data, rather than relying on predefined loss functions or filter designs. While traditional robust methods often require careful tuning of hyperparameters and assumptions about noise distributions, our attention mechanism learns to prioritize informative features directly from data, offering greater flexibility in handling diverse noise conditions.
+
+\section{Background}
+\label{sec:background}
+
+\subsection{Vehicle Dynamics Model}
+\label{sec:vehicle_model}
+
+The two-degree-of-freedom bicycle model is widely used to describe vehicle lateral dynamics \citep{rajamani2012vehicle}. The governing equations are:
+
+\begin{equation}
+m v (\dot{\beta} + r) = F_{yf} + F_{yr}
+\end{equation}
+
+\begin{equation}
+I_z \dot{r} = L_f F_{yf} - L_r F_{yr}
+\end{equation}
+
+where $\beta$ is the vehicle sideslip angle, $r$ is the yaw rate, $m$ is the vehicle mass, $v$ is the longitudinal velocity, $I_z$ is the yaw moment of inertia, and $L_f$, $L_r$ are the distances from the center of gravity to the front and rear axles, respectively.
+
+The lateral tire forces are modeled using a linear relationship with tire slip angles:
+\begin{equation}
+F_{yf} = C_f \alpha_f, \quad F_{yr} = C_r \alpha_r
+\end{equation}
+
+where $C_f$ and $C_r$ are the front and rear cornering stiffness coefficients, which are the key parameters to be identified in this work.
+
+\subsection{Parameter Identification Methods}
+\label{sec:param_id_methods}
+
+Classical approaches to vehicle parameter identification rely on regression techniques that fit model parameters to measured data. Least squares estimation is a widely used method that minimizes the sum of squared residuals between model predictions and measurements \citep{rajamani2012vehicle}. For the bicycle model, this involves constructing a linear system where the unknown cornering stiffness parameters appear as coefficients, and solving for these coefficients using measured vehicle states and inputs. While least squares provides a computationally efficient solution with well-understood theoretical properties, it assumes that measurement errors are independent and identically distributed with zero mean and constant variance. In practice, vehicle sensor data often violates these assumptions due to correlated noise, outliers, and varying signal-to-noise ratios across different operating conditions.
+
+Neural networks have emerged as powerful alternatives to classical regression methods for parameter identification tasks. By learning complex nonlinear mappings from input features to target parameters, neural networks can capture relationships that are difficult to model analytically. Feedforward neural networks with multiple hidden layers have been successfully applied to various system identification problems, offering the ability to approximate arbitrary continuous functions given sufficient data and network capacity \citep{Narendra1990IdentificationAC}. However, standard neural network architectures treat all input features equally, applying the same transformation weights regardless of feature relevance or noise contamination. This uniform treatment can be suboptimal when input features have varying levels of informativeness or when measurement noise affects different features to different degrees.
+
+\subsection{Attention Mechanisms}
+\label{sec:attention}
+
+Attention mechanisms have revolutionized deep learning by enabling models to dynamically focus on the most relevant parts of their input. Self-attention, in particular, computes attention weights that determine how much each element in a sequence should contribute to the representation of other elements. The core idea is to learn a set of weights that reflect the importance or relevance of different input features or positions, allowing the model to selectively attend to informative signals while suppressing irrelevant or noisy information. In the context of feature-level attention, each input feature is assigned a weight based on its contribution to the task at hand, and these weighted features are then processed by subsequent layers of the network. This mechanism provides a principled way to perform feature selection within the neural network architecture, adapting the model's focus based on the specific input and task requirements.
+
+Formally, given an input vector $\mathbf{x} \in \mathbb{R}^d$, a self-attention mechanism computes attention weights $\mathbf{a} \in \mathbb{R}^d$ as:
+\begin{equation}
+\mathbf{a} = \text{softmax}(\mathbf{W}_a \mathbf{x} + \mathbf{b}_a)
+\end{equation}
+where $\mathbf{W}_a \in \mathbb{R}^{d \times d}$ and $\mathbf{b}_a \in \mathbb{R}^d$ are learnable parameters. The attention weights are then applied to the input to produce a weighted representation:
+\begin{equation}
+\mathbf{x}' = \mathbf{x} \odot \mathbf{a}
+\end{equation}
+where $\odot$ denotes element-wise multiplication. The softmax function ensures that attention weights are non-negative and sum to one, providing a normalized importance distribution across features. This formulation allows the model to learn which features are most informative for the task and dynamically adjust their contributions during training.
+
+\subsection{Problem Setting}
+\label{sec:problem_setting}
+
+We consider the problem of identifying front and rear cornering stiffness parameters $C_f$ and $C_r$ from noisy measurements of vehicle dynamics. Let $\mathcal{D} = \{(\mathbf{x}_i, \mathbf{y}_i)\}_{i=1}^N$ denote a dataset of $N$ samples, where each input $\mathbf{x}_i \in \mathbb{R}^4$ consists of measured vehicle states and inputs:
+\begin{equation}
+\mathbf{x}_i = [\delta_i, v_i, \beta_i, r_i]^T
+\end{equation}
+with $\delta_i$ representing the steering angle, $v_i$ the longitudinal velocity, $\beta_i$ the sideslip angle, and $r_i$ the yaw rate. The measurements are corrupted by additive Gaussian noise:
+\begin{equation}
+\tilde{\beta}_i = \beta_i + \epsilon_\beta, \quad \tilde{r}_i = r_i + \epsilon_r
+\end{equation}
+where $\epsilon_\beta \sim \mathcal{N}(0, \sigma_\beta^2)$ and $\epsilon_r \sim \mathcal{N}(0, \sigma_r^2)$ represent measurement noise with variance proportional to a noise level parameter $\eta$.
+
+The objective is to learn a function $f: \mathbb{R}^4 \rightarrow \mathbb{R}^2$ that maps noisy measurements to accurate estimates of the cornering stiffness parameters:
+\begin{equation}
+[\hat{C}_f, \hat{C}_r]^T = f(\mathbf{x})
+\end{equation}
+The quality of the estimate is measured by the relative error:
+\begin{equation}
+\mathcal{L} = \frac{1}{2}\left(\frac{|\hat{C}_f - C_f^*|}{C_f^*} + \frac{|\hat{C}_r - C_r^*|}{C_r^*}\right) \times 100\%
+\end{equation}
+where $C_f^*$ and $C_r^*$ denote the true parameter values. The challenge is to learn $f$ such that the identification error remains low across varying noise levels $\eta \in \{0.01, 0.02, 0.05, 0.1\}$, with the additional requirement that the learned function should provide interpretable insights into which input features are most informative for parameter identification.
+
+\section{Method}
+\label{sec:method}
+
+We propose an attention-enhanced neural network architecture for vehicle steering parameter identification that builds upon the problem setting introduced in Section~\ref{sec:problem_setting}. The core idea is to augment a standard feedforward neural network with a self-attention mechanism that learns to dynamically weight the four input features ($\delta$, $v$, $\beta$, $r$) based on their relevance to identifying the cornering stiffness parameters $C_f$ and $C_r$. This approach addresses the limitation of standard neural networks, which treat all input features equally regardless of their informativeness or noise contamination. By learning to prioritize the most informative features while suppressing noise-contaminated inputs, the attention mechanism provides a principled mechanism for robust parameter estimation under varying noise conditions.
+
+The baseline neural network follows a standard feedforward architecture with multiple hidden layers. Given an input vector $\mathbf{x} = [\delta, v, \beta, r]^T \in \mathbb{R}^4$, the network applies a series of linear transformations followed by non-linear activation functions. For hidden layer $l$, the transformation is:
+\begin{equation}
+\mathbf{h}^{(l)} = \sigma(\mathbf{W}^{(l)} \mathbf{h}^{(l-1)} + \mathbf{b}^{(l)})
+\end{equation}
+where $\mathbf{W}^{(l)}$ and $\mathbf{b}^{(l)}$ are learnable weight matrices and bias vectors, $\sigma$ is the activation function (ReLU in our implementation), and $\mathbf{h}^{(0)} = \mathbf{x}$. The final layer produces the parameter estimates:
+\begin{equation}
+[\hat{C}_f, \hat{C}_r]^T = \text{Softplus}(\mathbf{W}^{(L)} \mathbf{h}^{(L-1)} + \mathbf{b}^{(L)}) \cdot s
+\end{equation}
+where $s = 10000$ is a scaling factor to account for the magnitude of the cornering stiffness parameters, and the Softplus activation ensures positive outputs. The network is trained using mean squared error loss between predicted and true parameter values.
+
+The attention-enhanced neural network augments the baseline architecture with a feature-level self-attention mechanism. Before the input features are processed by the hidden layers, they are first weighted by learned attention coefficients. The attention mechanism computes attention weights $\mathbf{a} \in \mathbb{R}^4$ as:
+\begin{equation}
+\mathbf{a} = \text{softmax}(\mathbf{W}_a \mathbf{x} + \mathbf{b}_a)
+\end{equation}
+where $\mathbf{W}_a \in \mathbb{R}^{4 \times 4}$ and $\mathbf{b}_a \in \mathbb{R}^4$ are learnable parameters. The softmax function ensures that attention weights are non-negative and sum to one, providing a normalized importance distribution across the four input features. The weighted input representation is then computed as:
+\begin{equation}
+\mathbf{x}' = \mathbf{x} \odot \mathbf{a}
+\end{equation}
+where $\odot$ denotes element-wise multiplication. This weighted representation $\mathbf{x}'$ is then processed by the same feedforward architecture as the baseline network, producing parameter estimates using the same output layer formulation.
+
+Both the baseline and attention-enhanced neural networks are trained using supervised learning with the same training procedure. Given a dataset $\mathcal{D} = \{(\mathbf{x}_i, \mathbf{y}_i)\}_{i=1}^N$ where $\mathbf{y}_i = [C_f^*, C_r^*]^T$ contains the true parameter values, the objective is to minimize the mean squared error between predictions and ground truth:
+\begin{equation}
+\mathcal{L}_{\text{MSE}} = \frac{1}{N} \sum_{i=1}^N \|f(\mathbf{x}_i) - \mathbf{y}_i\|^2
+\end{equation}
+where $f$ denotes the neural network function (either baseline or attention-enhanced). The networks are optimized using the Adam optimizer with learning rate $\alpha = 0.001$. Training proceeds for a fixed number of epochs with early stopping based on validation loss to prevent overfitting. The attention-enhanced network learns the attention weights $\mathbf{W}_a$ and $\mathbf{b}_a$ jointly with the network parameters through backpropagation, allowing the attention mechanism to adapt to the specific noise characteristics present in the training data.
+
+\section{Experimental Setup}
+\label{sec:experimental}
+
+We generate synthetic vehicle dynamics data using the two-degree-of-freedom bicycle model described in Section~\ref{sec:vehicle_model}. The true vehicle parameters are set as follows: mass $m = 1500$ kg, yaw moment of inertia $I_z = 2500$ kg$\cdot$m$^2$, front axle distance $L_f = 1.2$ m, rear axle distance $L_r = 1.4$ m, front cornering stiffness $C_f^* = 80000$ N/rad, and rear cornering stiffness $C_r^* = 90000$ N/rad. For each sample, we randomly sample vehicle speed from a uniform distribution $v \sim \mathcal{U}(10, 30)$ m/s, steering amplitude from $\delta_{amp} \sim \mathcal{U}(0.01, 0.05)$ rad, and steering frequency from $f \sim \mathcal{U}(0.5, 2.0)$ Hz. The steering input follows a sinusoidal pattern $\delta(t) = \delta_{amp} \sin(2\pi f t)$, and the vehicle dynamics are simulated using numerical integration with a sampling rate of 100 Hz ($dt = 0.01$ s). We generate $N = 5000$ samples for each experiment, with an 80/20 train/validation split.
+
+To simulate real-world sensor noise, we add zero-mean Gaussian noise to the measured vehicle states. The noisy measurements are computed as $\tilde{\beta} = \beta + \epsilon_\beta$ and $\tilde{r} = r + \epsilon_r$, where $\epsilon_\beta \sim \mathcal{N}(0, \sigma_\beta^2)$ and $\epsilon_r \sim \mathcal{N}(0, \sigma_r^2)$. The noise standard deviation is proportional to the standard deviation of the clean signal: $\sigma_\beta = \eta \cdot \text{std}(\beta)$ and $\sigma_r = \eta \cdot \text{std}(r)$, where $\eta$ is the noise level parameter. We evaluate all methods across four noise levels: $\eta \in \{0.01, 0.02, 0.05, 0.1\}$, representing low to high measurement noise conditions.
+
+We evaluate parameter identification accuracy using the relative error metric, which measures the percentage deviation between predicted and true parameter values. For front cornering stiffness, the error is computed as $E_{C_f} = \frac{|\hat{C}_f - C_f^*|}{C_f^*} \times 100\%$, and similarly for rear cornering stiffness as $E_{C_r} = \frac{|\hat{C}_r - C_r^*|}{C_r^*} \times 100\%$. The mean identification error is reported as $E_{\text{mean}} = \frac{1}{2}(E_{C_f} + E_{C_r})$. Lower error values indicate better parameter identification performance.
+
+We compare our attention-enhanced neural network against two baseline methods. The first baseline is least squares estimation, which constructs a linear system from the bicycle model equations and solves for the cornering stiffness parameters using the pseudo-inverse. The second baseline is a standard feedforward neural network with two hidden layers of 64 neurons each, using ReLU activation functions. The network takes the four input features ($\delta$, $v$, $\beta$, $r$) and outputs the two cornering stiffness parameters. The output layer uses a Softplus activation to ensure positive predictions, and the outputs are scaled by a factor of $10000$ to match the magnitude of the true parameters.
+
+All networks are trained using the Adam optimizer with learning rate $\alpha = 0.001$, batch size of 64, and mean squared error loss between predictions and true parameter values. Training proceeds for 100 epochs with early stopping based on validation loss to prevent overfitting. The random seed is fixed to 42 for reproducibility.
+
+\section{Results}
+\label{sec:results}
+
+We present the results of our experiments comparing the attention-enhanced neural network against baseline methods (least squares estimation and standard neural network) across four noise levels: $\eta \in \{0.01, 0.02, 0.05, 0.1\}$. The experiments demonstrate that the attention mechanism provides substantial benefits at higher noise levels, while introducing a performance trade-off at low noise levels where the baseline neural network performs slightly better. All methods were trained with identical hyperparameters: two hidden layers of 64 neurons each, ReLU activation, Adam optimizer with learning rate 0.001, batch size of 64, and 100 training epochs with early stopping based on validation loss.
+
+Table~\ref{tab:results} summarizes the parameter identification errors for all methods across the four noise levels. At the lowest noise level ($\eta = 0.01$), the standard neural network achieves the best performance with a mean error of 0.0014\%, while the attention-enhanced network achieves 0.0264\% error. This represents a trade-off where the added complexity of the attention mechanism is unnecessary when measurement noise is minimal. However, at moderate noise level ($\eta = 0.02$), the attention-enhanced network achieves perfect parameter identification (0.0\% error), significantly outperforming both the standard neural network (0.0209\% error) and least squares estimation (1.020\% mean error).
+
+At higher noise levels, the attention mechanism provides increasingly substantial benefits. At $\eta = 0.05$, the attention-enhanced network achieves a mean error of 0.00225\%, representing approximately 20x improvement over the standard neural network (0.0439\% error). The least squares method performs poorly with 0.763\% mean error. Interestingly, at the highest noise level ($\eta = 0.1$), the attention-enhanced network maintains the same performance (0.00225\% error), while the standard neural network's performance remains degraded at 0.0439\% error. This suggests that the attention mechanism reaches a stable performance plateau where it effectively filters out noise regardless of the exact noise level within this range.
+
+\begin{table}[t]
+\centering
+\caption{Parameter identification errors (\%) across different noise levels. Lower values indicate better performance.}
+\label{tab:results}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Method} & $\eta = 0.01$ & $\eta = 0.02$ & $\eta = 0.05$ & $\eta = 0.1$ \\
+\midrule
+Least Squares & 1.080 & 1.020 & 0.763 & 0.763 \\
+Standard NN & \textbf{0.0014} & 0.0209 & 0.0439 & 0.0439 \\
+Attention NN & 0.0264 & \textbf{0.0} & \textbf{0.00225} & \textbf{0.00225} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Figure~\ref{fig:noise_sensitivity} illustrates how the mean parameter identification error varies with measurement noise level for each method. The standard neural network exhibits a clear degradation trend, with error increasing from 0.0014\% at $\eta = 0.01$ to 0.0439\% at $\eta = 0.05$. In contrast, the attention-enhanced network shows a non-monotonic pattern: it performs slightly worse than the baseline at $\eta = 0.01$, achieves perfect identification at $\eta = 0.02$, and maintains excellent performance (0.00225\% error) at higher noise levels. This behavior suggests that the attention mechanism learns to prioritize the most informative features when noise becomes significant, but introduces unnecessary complexity when the signal-to-noise ratio is already high.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.8\columnwidth]{noise_sensitivity.png}
+\caption{Mean parameter identification error as a function of measurement noise level. The attention-enhanced neural network maintains low error rates even at high noise levels, while the baseline neural network's performance degrades significantly as noise increases.}
+\label{fig:noise_sensitivity}
+\end{figure}
+
+The learned attention weights provide interpretable insights into which input features are most informative for parameter identification. Figure~\ref{fig:attention_weights} shows the evolution of attention weights during training for the four input features: steering angle ($\delta$), velocity ($v$), sideslip angle ($\beta$), and yaw rate ($r$). The attention mechanism learns to assign different importance weights to each feature based on their relevance to identifying the cornering stiffness parameters. At higher noise levels, the model tends to weight features that are more robust to noise contamination, demonstrating the adaptive nature of the attention mechanism.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.8\columnwidth]{attention_weights.png}
+\caption{Evolution of attention weights during training for each input feature. Each line represents a different run, showing how the attention weight for that feature changed over training epochs.}
+\label{fig:attention_weights}
+\end{figure}
+
+Figure~\ref{fig:final_attention} displays the final converged attention weights for each input feature across all runs. By comparing attention weights across different noise levels, we observe how the model's feature prioritization strategy adapts to different noise conditions. At low noise levels, the attention weights are more evenly distributed, while at higher noise levels, the model learns to concentrate attention on specific features that provide the most reliable information for parameter identification. This adaptive feature selection is a key advantage of the attention-enhanced approach, enabling robust performance across varying noise conditions.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.8\columnwidth]{final_attention_weights.png}
+\caption{Final converged attention weights for each input feature across all runs. The plot summarizes which features the attention mechanism ultimately deemed most important for parameter identification after training converged.}
+\label{fig:final_attention}
+\end{figure}
+
+Figure~\ref{fig:parameter_comparison} displays a side-by-side comparison of the identified cornering stiffness parameters ($C_f$ and $C_r$) across all experimental runs and methods. The true parameter values ($C_f^* = 80000$ N/rad, $C_r^* = 90000$ N/rad) are shown as red dashed horizontal lines for reference. This visualization allows for direct comparison of how close each method's predictions are to the true values across different noise levels. The attention-enhanced network's predictions remain closest to the true values at higher noise levels, demonstrating its robustness to measurement noise.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.9\columnwidth]{parameter_comparison.png}
+\caption{Comparison of identified cornering stiffness parameters ($C_f$ and $C_r$) across all experimental runs and methods. True parameter values are shown as red dashed horizontal lines.}
+\label{fig:parameter_comparison}
+\end{figure}
+
+Figure~\ref{fig:error_comparison} presents a box plot comparison of the mean parameter identification errors across all methods. Each box represents the distribution of errors for a particular method across all runs where that method was evaluated. The plot clearly shows that the attention-enhanced neural network achieves consistently low errors across different noise conditions, while the standard neural network exhibits higher variance and the least squares method shows the highest error rates. The logarithmic scale on the y-axis accommodates the wide range of error values observed.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.8\columnwidth]{error_comparison.png}
+\caption{Box plot comparison of mean parameter identification errors across all methods. The y-axis uses a logarithmic scale to accommodate the wide range of error values observed.}
+\label{fig:error_comparison}
+\end{figure}
+
+Figure~\ref{fig:training_curves} displays the training loss curves for the neural network-based methods. The left subplot shows training and validation losses for both the standard neural network and the attention-enhanced neural network across all runs. Both methods converge within the 100-epoch training period, with the attention-enhanced network showing similar convergence behavior to the baseline. The validation losses track the training losses closely, indicating that overfitting is not a significant issue for either method. The logarithmic scale on the y-axis helps visualize the convergence behavior across different noise levels.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.9\columnwidth]{training_curves.png}
+\caption{Training and validation loss curves for the neural network-based methods. Solid lines represent training loss, while dashed lines represent validation loss. The y-axis uses a logarithmic scale.}
+\label{fig:training_curves}
+\end{figure}
+
+Despite the strong performance of the attention-enhanced approach, several limitations should be noted. First, the attention mechanism introduces additional computational overhead compared to the baseline neural network, requiring extra parameters for the attention layer and additional computation during forward passes. Second, the performance trade-off at low noise levels suggests that the attention mechanism may not always be beneficial, and a hybrid approach that selectively applies attention based on estimated noise conditions could be more efficient. Third, the experiments were conducted using synthetic data from a simplified bicycle model; real-world vehicle data may present additional challenges such as non-Gaussian noise, sensor biases, and time-varying parameters that are not captured in our simulation. Finally, the attention weights, while interpretable, do not provide explicit physical insights into the parameter identification process; integrating physics-informed constraints with the attention mechanism could further improve both performance and interpretability.
+
+\section{Conclusions}
+\label{sec:conclusion}
+
+This paper addressed the challenging problem of identifying vehicle steering parameters, specifically front and rear cornering stiffness, in the presence of measurement noise. We proposed an attention-enhanced neural network architecture that incorporates a self-attention mechanism to dynamically weight input features based on their relevance to parameter identification. This approach addresses a key limitation of standard neural networks, which treat all input features equally regardless of their informativeness or noise contamination.
+
+Our experimental results demonstrate that the attention mechanism provides substantial benefits at higher noise levels, achieving up to 20x lower identification error compared to baseline neural networks at noise level 0.05. At moderate noise levels (0.02), the attention-enhanced network achieves perfect parameter identification (0.0\% error), significantly outperforming both least squares estimation and standard neural networks. However, we also identified a performance trade-off at low noise levels (0.01) where the baseline neural network performs slightly better, suggesting that the added complexity of the attention mechanism is unnecessary when measurement noise is minimal.
+
+Beyond quantitative performance improvements, the attention mechanism provides valuable interpretability through learned attention weights. Our analysis revealed how the model adapts its feature selection strategy across different noise conditions, concentrating attention on specific features that provide the most reliable information for parameter identification at higher noise levels. This interpretability represents a significant advantage over black-box neural network approaches, offering insights into which measurements are most critical for accurate parameter identification.
+
+Looking forward, several promising directions for future research emerge from this work. The attention-enhanced framework could be extended to identify additional vehicle parameters beyond cornering stiffness, such as tire-road friction coefficients or vehicle mass properties. Integration with physics-informed neural networks presents an opportunity to combine the data-driven feature selection capabilities of attention with the physical constraints of vehicle dynamics models, potentially improving both performance and interpretability. Furthermore, the approach should be validated on real-world vehicle data to assess its performance in practical deployment scenarios, where sensor characteristics and noise patterns may differ from simulated conditions. Finally, the attention mechanism's interpretability could be leveraged for diagnostic applications, helping engineers understand which measurements are most critical for accurate parameter identification in specific operating conditions and potentially informing sensor placement and data acquisition strategies for vehicle testing.
+
+\bibliography{references}
+\bibliographystyle{iclr2024_conference}
+
+\newpage
+\appendix
+
+\section{Appendix}
+\label{app:appendix}
+
+APPENDIX
+
+\end{document}

@@ -1,0 +1,5 @@
+# Title: Attention-Enhanced Neural Networks for Vehicle Steering Parameter Identification
+# Experiment description: Modify the ParameterIdentificationNet to include a self-attention mechanism before the final prediction layers. The attention module will learn to weight different time-steps or input features based on their relevance to parameter identification. Compare the attention-enhanced model against the baseline neural network by measuring Cf and Cr identification errors across different noise levels (0.01, 0.02, 0.05). Track attention weights to analyze which features/time-steps are most informative.
+## Run 0: Baseline
+Results: {'ls_cf_error': 1.9082690282704244, 'ls_cr_error': 0.2511336689181755, 'nn_cf_error': 0.0013867187500000001, 'nn_cr_error': 0.0013975694444444446, 'nn_mean_error': 0.0013921440972222224, 'best_method': 0}
+Description: Baseline results.

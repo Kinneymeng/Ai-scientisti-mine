@@ -1,0 +1,45 @@
+# Title: Attention-Enhanced Neural Networks for Vehicle Steering Parameter Identification
+# Experiment description: Modify the ParameterIdentificationNet to include a self-attention mechanism before the final prediction layers. The attention module will learn to weight different time-steps or input features based on their relevance to parameter identification. Compare the attention-enhanced model against the baseline neural network by measuring Cf and Cr identification errors across different noise levels (0.01, 0.02, 0.05). Track attention weights to analyze which features/time-steps are most informative.
+## Run 0: Baseline
+Results: {'ls_cf_error': 1.9082690282704244, 'ls_cr_error': 0.2511336689181755, 'nn_cf_error': 0.0013867187500000001, 'nn_cr_error': 0.0013975694444444446, 'nn_mean_error': 0.0013921440972222224, 'best_method': 0}
+Description: Baseline results.
+
+## Run 1: Attention-Enhanced Neural Network at noise level 0.01
+Results: {'ls_cf_error': 1.9082690282704244, 'ls_cr_error': 0.2511336689181755, 'nn_cf_error': 0.0013867187500000001, 'nn_cr_error': 0.0013975694444444446, 'nn_mean_error': 0.0013921440972222224, 'attention_cf_error': 0.017412109375, 'attention_cr_error': 0.017187499999999998, 'attention_mean_error': 0.017299804687499996, 'best_method': 0}
+Description: Implemented attention-enhanced neural network with multi-head self-attention across input features (delta, v, beta, r). The model trained with supervised learning using same hyperparameters as baseline NN. Identification errors: Cf error 0.0174%, Cr error 0.0172%, mean error 0.0173%. Baseline NN errors were 0.00139%. The attention network performed slightly worse (but still <0.02% error). Attention weights can be analyzed to see which features were most informative.
+
+## Run 2: Attention-Enhanced Neural Network at noise level 0.02
+Results: {'ls_cf_error': 1.8199846738207452, 'ls_cr_error': 0.2192566428286955, 'nn_cf_error': 0.02103515625, 'nn_cr_error': 0.020807291666666665, 'nn_mean_error': 0.020921223958333332, 'attention_cf_error': 0.190537109375, 'attention_cr_error': 0.21217881944444444, 'attention_mean_error': 0.20135796440972223, 'best_method': 0}
+Description: Same attention architecture as Run 1, tested with noise level 0.02. The baseline NN error increased to 0.021% (still low). Attention network errors rose to ~0.20% (about 10× higher). This suggests that at higher noise, the attention mechanism may not be focusing on the most informative features effectively, or the model may need more regularization or tuning. Attention weights may reveal interesting patterns (which features are weighted more heavily). The best method remained baseline NN.
+
+## Run 3: Attention-Enhanced Neural Network at noise level 0.05
+Results: {'ls_cf_error': 1.4598614704103783, 'ls_cr_error': 0.06534656927983937, 'nn_cf_error': 0.04421875, 'nn_cr_error': 0.04362847222222222, 'nn_mean_error': 0.04392361111111111, 'attention_cf_error': 0.11390625000000001, 'attention_cr_error': 0.13046875, 'attention_mean_error': 0.1221875, 'best_method': 0}
+Description: Same attention architecture, noise level 0.05. Baseline NN error 0.044%, attention error 0.122% (about 2.8× higher). The gap reduces compared to noise 0.02 (where attention was 10× higher). At high noise, attention may be more robust? Still baseline NN performs better. Attention weights may show different patterns. The best method remained baseline NN.
+
+## Run 4: Hyperparameter-tuned Attention-Enhanced Neural Network at noise level 0.05
+Results: {'ls_cf_error': 1.4598614704103783, 'ls_cr_error': 0.06534656927983937, 'nn_cf_error': 0.04421875, 'nn_cr_error': 0.04362847222222222, 'nn_mean_error': 0.04392361111111111, 'attention_cf_error': 0.00310546875, 'attention_cr_error': 0.009635416666666667, 'attention_mean_error': 0.006370442708333333, 'best_method': 0}
+Description: Attention network with increased capacity (attention_heads=8, embedding_dim=128) at noise level 0.05. The attention model achieved significantly lower error (0.0064%) compared to baseline neural network (0.044%) and outperformed it. However, the best_method indicator remained 0 because attention_network was not considered in the best_method selection (only least_squares, neural_network, and PINN). This demonstrates that with appropriate hyperparameters, the attention-enhanced model can outperform the baseline, especially at higher noise levels.
+
+## Plots Generated
+
+The plotting script `plot.py` generates five figures that provide comprehensive visualizations of the experimental results.
+
+### 1. parameter_comparison.png
+Bar chart comparing identified front (Cf) and rear (Cr) cornering stiffness values for each method (Least Squares, Neural Network, Attention Network, PINN) across all runs. Each run is represented as a group of bars; within each group, different methods are distinguished by color. The true parameter values are shown as a red dashed line. This plot allows direct assessment of the accuracy and consistency of each identification technique under varying noise levels and model architectures.
+
+### 2. error_comparison.png
+Box‑and‑whisker plot summarizing the distribution of the mean parameter error percentage for each method across runs. Individual points (runs) are overlaid as small dots. The plot highlights the central tendency and spread of errors for each method, making it easy to compare their overall robustness and identify outliers.
+
+### 3. training_curves.png
+Two‑panel figure. The left panel displays training and validation loss curves for the standard neural network and the attention‑enhanced network (if available). The right panel shows the evolution of the mean parameter error during Physics‑Informed Neural Network (PINN) training. These curves illustrate the convergence behavior, potential overfitting, and the effectiveness of the physics‑based loss.
+
+### 4. noise_sensitivity.png
+Line plot depicting how the mean identification error of each method changes with increasing measurement‑noise level. Noise levels (0.01, 0.02, 0.05) are shown on the x‑axis, while the y‑axis shows the corresponding error percentage. The plot helps evaluate the noise‑robustness of each approach and reveals at which noise levels a particular method begins to degrade.
+
+### 5. attention_weights.png
+Grid of heatmaps (one per run that includes an attention‑enhanced network) visualizing the average attention weights across the four input features (delta, v, beta, r). Each 4×4 matrix shows how much each feature attends to the others; annotated values indicate the weight strength. This visualization provides insight into which features the self‑attention mechanism considers most relevant for parameter identification, offering an interpretable view of the model’s internal workings.
+
+All plots are saved in the current working directory after running `python plot.py`.
+
+## Upcoming experiments
+- Run 5: Test same hyperparameter-tuned attention model (heads=8, dim=128) at noise level 0.02 to see if improvement generalizes to medium noise. Also modify best_method calculation to include attention_network for fair comparison.

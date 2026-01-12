@@ -1,0 +1,5 @@
+# Title: Curriculum Learning with Progressive Noise Injection for Robust Parameter Identification
+# Experiment description: Implement curriculum learning where the model is first trained on clean data, then progressively exposed to increasing noise levels. Modify the training loop to start with noise_level=0.001 and gradually increase to the target noise level over the training epochs. Compare against standard training (constant noise) and evaluate robustness by testing on noise levels the model wasn't explicitly trained on. Measure both identification accuracy and generalization to unseen noise conditions.
+## Run 0: Baseline
+Results: {'ls_cf_error': 1.9082690282704244, 'ls_cr_error': 0.2511336689181755, 'nn_cf_error': 0.0013867187500000001, 'nn_cr_error': 0.0013975694444444446, 'nn_mean_error': 0.0013921440972222224, 'best_method': 0}
+Description: Baseline results.

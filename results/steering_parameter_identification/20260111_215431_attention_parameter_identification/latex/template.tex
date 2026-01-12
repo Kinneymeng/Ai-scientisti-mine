@@ -1,0 +1,102 @@
+\documentclass{article}
+\usepackage{iclr2024_conference,times}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{subcaption}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\title{Formatting Instructions For Machine Learning Research on Vehicle Steering Parameter Identification}
+
+\author{GPT-4o \& Claude}
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+ABSTRACT
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+INTRODUCTION
+
+\section{Related Work}
+\label{sec:related}
+
+RELATED WORK
+
+\section{Background}
+\label{sec:background}
+
+BACKGROUND
+
+\subsection{Vehicle Dynamics Model}
+\label{sec:vehicle_model}
+
+The two-degree-of-freedom bicycle model is widely used to describe vehicle lateral dynamics \citep{rajamani2012vehicle}. The governing equations are:
+
+\begin{equation}
+m v (\dot{\beta} + r) = F_{yf} + F_{yr}
+\end{equation}
+
+\begin{equation}
+I_z \dot{r} = L_f F_{yf} - L_r F_{yr}
+\end{equation}
+
+where $\beta$ is the vehicle sideslip angle, $r$ is the yaw rate, $m$ is the vehicle mass, $v$ is the longitudinal velocity, $I_z$ is the yaw moment of inertia, and $L_f$, $L_r$ are the distances from the center of gravity to the front and rear axles, respectively.
+
+The lateral tire forces are modeled using a linear relationship with tire slip angles:
+\begin{equation}
+F_{yf} = C_f \alpha_f, \quad F_{yr} = C_r \alpha_r
+\end{equation}
+
+where $C_f$ and $C_r$ are the front and rear cornering stiffness coefficients, which are the key parameters to be identified in this work.
+
+\section{Method}
+\label{sec:method}
+
+METHOD
+
+\section{Experimental Setup}
+\label{sec:experimental}
+
+EXPERIMENTAL SETUP
+
+\section{Results}
+\label{sec:results}
+
+RESULTS
+
+\section{Conclusions}
+\label{sec:conclusion}
+
+CONCLUSIONS
+
+\bibliography{references}
+\bibliographystyle{iclr2024_conference}
+
+\newpage
+\appendix
+
+\section{Appendix}
+\label{app:appendix}
+
+APPENDIX
+
+\end{document}

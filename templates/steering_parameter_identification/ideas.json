@@ -1,0 +1,38 @@
+[
+    {
+        "Name": "attention_parameter_identification",
+        "Title": "Attention-Enhanced Neural Networks for Vehicle Steering Parameter Identification",
+        "Experiment": "Modify the ParameterIdentificationNet to include a self-attention mechanism before the final prediction layers. The attention module will learn to weight different time-steps or input features based on their relevance to parameter identification. Compare the attention-enhanced model against the baseline neural network by measuring Cf and Cr identification errors across different noise levels (0.01, 0.02, 0.05). Track attention weights to analyze which features/time-steps are most informative.",
+        "Interestingness": 8,
+        "Feasibility": 7,
+        "Novelty": 7,
+        "novel": true
+    },
+    {
+        "Name": "curriculum_noise_training",
+        "Title": "Curriculum Learning with Progressive Noise Injection for Robust Parameter Identification",
+        "Experiment": "Implement curriculum learning where the model is first trained on clean data, then progressively exposed to increasing noise levels. Modify the training loop to start with noise_level=0.001 and gradually increase to the target noise level over the training epochs. Compare against standard training (constant noise) and evaluate robustness by testing on noise levels the model wasn't explicitly trained on. Measure both identification accuracy and generalization to unseen noise conditions.",
+        "Interestingness": 7,
+        "Feasibility": 8,
+        "Novelty": 6,
+        "novel": false
+    },
+    {
+        "Name": "uncertainty_model_mismatch",
+        "Title": "Detecting Tire Saturation and Model Mismatch via Uncertainty Quantification",
+        "Experiment": "1. Modify `ParameterIdentificationNet` to include `nn.Dropout(p=0.2)` layers. 2. Implement a `predict_with_uncertainty` function for stochastic forward passes (T=50) to compute prediction mean and standard deviation. 3. Modify `generate_simulation_data` to support a `nonlinear_tire` flag. When enabled, replace the linear force calculation `Fy = C * alpha` with a saturating nonlinear function (e.g., `Fy = C * tanh(alpha)`). 4. Train the model on standard linear data (small angles). 5. Evaluate on two test sets: (a) Linear data (baseline) and (b) Nonlinear/Saturated data (aggressive driving). 6. Compare the uncertainty (std dev) between the two sets. The goal is to demonstrate that uncertainty spikes significantly when the physical assumptions of the model are violated, providing a warning system for the controller.",
+        "Interestingness": 9,
+        "Feasibility": 8,
+        "Novelty": 8,
+        "novel": false
+    },
+    {
+        "Name": "temporal_cnn_identification",
+        "Title": "Temporal Convolutional Networks for Noise-Robust Vehicle Parameter Identification",
+        "Experiment": "1. Create a new dataset loader that generates sliding windows of length `L` (e.g., 20 timesteps) from the simulation data. The input tensor shape becomes `(batch, channels=4, sequence_length=L)` where channels are [delta, v, beta, r]. 2. Implement `TemporalCNNNet` using `nn.Conv1d` layers with kernel sizes > 1 to extract temporal features, followed by adaptive pooling and fully connected layers to predict Cf and Cr. 3. Train the TCN on data with varying noise levels. 4. Compare against the baseline MLP and PINN. The TCN is expected to significantly outperform the MLP on noisy data by acting as a learnable noise filter, and outperform the PINN at high noise levels by avoiding the use of unstable numerical derivatives required for the physics loss.",
+        "Interestingness": 8,
+        "Feasibility": 10,
+        "Novelty": 7,
+        "novel": false
+    }
+]

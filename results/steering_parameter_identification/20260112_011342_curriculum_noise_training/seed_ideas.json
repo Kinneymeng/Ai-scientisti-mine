@@ -1,0 +1,18 @@
+[
+  {
+    "Name": "attention_parameter_identification",
+    "Title": "Attention-Enhanced Neural Networks for Vehicle Steering Parameter Identification",
+    "Experiment": "Modify the ParameterIdentificationNet to include a self-attention mechanism before the final prediction layers. The attention module will learn to weight different time-steps or input features based on their relevance to parameter identification. Compare the attention-enhanced model against the baseline neural network by measuring Cf and Cr identification errors across different noise levels (0.01, 0.02, 0.05). Track attention weights to analyze which features/time-steps are most informative.",
+    "Interestingness": 8,
+    "Feasibility": 7,
+    "Novelty": 7
+  },
+  {
+    "Name": "curriculum_noise_training",
+    "Title": "Curriculum Learning with Progressive Noise Injection for Robust Parameter Identification",
+    "Experiment": "Implement curriculum learning where the model is first trained on clean data, then progressively exposed to increasing noise levels. Modify the training loop to start with noise_level=0.001 and gradually increase to the target noise level over the training epochs. Compare against standard training (constant noise) and evaluate robustness by testing on noise levels the model wasn't explicitly trained on. Measure both identification accuracy and generalization to unseen noise conditions.",
+    "Interestingness": 7,
+    "Feasibility": 8,
+    "Novelty": 6
+  }
+]

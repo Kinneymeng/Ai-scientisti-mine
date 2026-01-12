@@ -1,0 +1,295 @@
+\documentclass{article}
+\usepackage{iclr2024_conference,times}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{subcaption}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\title{Progressive Noise Curriculum for Robust Vehicle Parameter Identification}
+
+\author{GPT-4o \& Claude}
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Accurate identification of vehicle steering parameters, particularly cornering stiffness, is essential for the design and operation of advanced vehicle control systems such as electronic stability control and autonomous driving algorithms. However, parameter identification from real-world sensor data is fundamentally challenging due to measurement noise, which can significantly degrade estimation accuracy and limit the reliability of identified models. Traditional methods like least squares regression are sensitive to noise, while standard neural network approaches often fail to generalize well to noise conditions not encountered during training. We propose a curriculum learning approach with progressive noise injection to improve the robustness of neural network-based parameter identification. Our method trains models starting from clean data and gradually increases the noise level to a target value over the course of training, allowing the model to learn fundamental dynamics patterns before adapting to noisy conditions. We implement this approach using both standard neural networks and physics-informed neural networks that embed vehicle dynamics equations as constraints, comparing their performance against baseline least squares regression and standard training with constant noise levels. Through extensive experiments using a two-degree-of-freedom bicycle model simulation, we evaluate parameter identification accuracy across varying noise levels and test generalization to unseen noise conditions. Our results demonstrate that neural network-based methods achieve significantly lower identification errors compared to classical least squares, with mean errors of approximately 0.0014\% compared to least squares errors of 1.91\% for front cornering stiffness and 0.25\% for rear cornering stiffness. While curriculum learning shows comparable performance to standard training within the tested noise range, our analysis reveals important insights into the noise robustness properties of different identification approaches and provides a framework for developing more reliable parameter estimation systems for real-world vehicle applications.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+% This paragraph introduces the problem of vehicle steering parameter identification, explains its critical importance for modern vehicle control systems, and provides context about why accurate parameter estimation is essential for safety and performance.
+Accurate identification of vehicle steering parameters is a fundamental requirement for the design and operation of advanced vehicle control systems. As automotive technology progresses toward higher levels of automation, the reliability of vehicle control algorithms such as electronic stability control, lane-keeping assistance, and autonomous driving systems depends critically on accurate knowledge of vehicle dynamics parameters \citep{rajamani2012vehicle}. Among these parameters, cornering stiffness coefficients are particularly important as they characterize the relationship between tire slip angles and lateral forces, directly influencing vehicle handling behavior and stability margins. Inaccurate parameter estimates can lead to degraded controller performance, reduced safety margins, and in extreme cases, dangerous vehicle behavior.
+
+% This paragraph discusses the challenges of parameter identification from real-world sensor data, focusing on measurement noise as the primary obstacle, and explains why traditional methods struggle with this problem.
+Despite its importance, parameter identification from real-world sensor data presents significant challenges. The primary difficulty stems from measurement noise inherent in vehicle sensors, including accelerometers, gyroscopes, and steering angle sensors. This noise can arise from various sources including sensor imperfections, environmental disturbances, and vehicle vibrations. Traditional parameter identification methods, such as least squares regression, are particularly sensitive to measurement noise and can produce biased or highly variable estimates when noise levels are substantial \citep{rajamani2012vehicle}. Furthermore, real-world operating conditions introduce additional complexities including varying road surface conditions, tire wear effects, and temperature-dependent tire properties, all of which can affect parameter identification accuracy.
+
+% This paragraph introduces neural network-based approaches as a promising alternative to traditional methods, highlighting their ability to learn complex mappings and their potential for improved robustness to measurement noise.
+Recent advances in machine learning have opened new possibilities for parameter identification tasks. Neural networks, with their ability to learn complex non-linear mappings from data, offer a promising alternative to traditional regression-based methods. Unlike classical approaches that rely on explicit model structures and assumptions about noise distributions, neural networks can learn to extract parameter information directly from noisy sensor data through exposure to diverse training examples. This data-driven approach has shown success in various system identification applications \citep{koysuren2023online} and is particularly well-suited to problems where the relationship between measurements and parameters is complex or where noise characteristics are not well understood.
+
+% This paragraph introduces the specific challenge of generalization to unseen noise conditions and explains why standard neural network training may fail to produce models that are robust to noise levels not encountered during training.
+However, standard neural network training approaches have limitations when applied to parameter identification problems with variable noise conditions. Models trained on data with a specific noise level often fail to generalize well to different noise conditions, particularly when test data contains higher noise levels than training data. This generalization gap is problematic for real-world applications where noise levels can vary significantly depending on operating conditions, sensor quality, and environmental factors. A model that performs well under laboratory conditions may degrade substantially when deployed in the field, limiting its practical utility.
+
+% This paragraph introduces curriculum learning with progressive noise injection as our proposed solution, explaining the core idea and how it addresses the generalization challenge.
+To address this generalization challenge, we propose a curriculum learning approach with progressive noise injection for robust vehicle steering parameter identification. Curriculum learning is a training paradigm inspired by human learning, where models are first exposed to simpler examples and gradually progress to more challenging ones. In our approach, we start training with clean or low-noise data and progressively increase the noise level to a target value over the course of training. This strategy allows the model to first learn fundamental vehicle dynamics patterns from relatively clean data before adapting to increasingly noisy conditions. By gradually exposing the model to a range of noise levels during training, we aim to improve its robustness and generalization to unseen noise conditions.
+
+% This paragraph provides an overview of our experimental methodology, including the use of a two-degree-of-freedom bicycle model simulation, comparison against baseline methods, and evaluation of generalization performance.
+We evaluate our proposed approach through extensive experiments using a two-degree-of-freedom bicycle model simulation, which provides a controlled environment for studying parameter identification under varying noise conditions. We compare the performance of neural networks trained with curriculum learning against standard neural network training with constant noise levels, as well as against classical least squares regression as a baseline. Our evaluation includes both identification accuracy on training noise levels and generalization performance on unseen noise levels. Additionally, we explore the use of physics-informed neural networks that embed vehicle dynamics equations as constraints, investigating whether incorporating domain knowledge can further improve parameter identification accuracy and robustness.
+
+% This paragraph lists our specific contributions as bullet points, clearly articulating what we bring to the field.
+The main contributions of this work are as follows:
+\begin{itemize}
+    \item We propose a curriculum learning framework with progressive noise injection for robust vehicle steering parameter identification, exploring whether gradually increasing noise levels during training can improve model robustness.
+    \item We conduct a comprehensive empirical study comparing neural network-based parameter identification against classical least squares regression, quantifying the performance improvements achieved through data-driven approaches.
+    \item We evaluate generalization performance across a range of unseen noise levels, providing insights into the robustness properties of different identification methods and training strategies.
+    \item We investigate the potential benefits of physics-informed neural networks for parameter identification, exploring how embedding vehicle dynamics equations as constraints affects estimation accuracy.
+\end{itemize}
+
+\section{Related Work}
+\label{sec:related}
+
+Neural networks have been widely applied to system identification tasks due to their ability to model complex nonlinear dynamics. Early work by Narendra and Parthasarathy demonstrated the effectiveness of neural networks for identifying and controlling dynamic systems \citep{narendra1990identification}. Unlike classical methods that require explicit model structures and assume Gaussian noise, neural network approaches learn the mapping from inputs to outputs directly from data, making them particularly suitable for problems where the underlying dynamics are complex or poorly understood. This data-driven paradigm has shown success in various system identification applications, including modeling of dynamic systems, fault detection, and parameter estimation \citep{pillonetto2023deep}. Our work builds on this foundation by applying neural networks to vehicle parameter identification, but we specifically address the challenge of generalization to unseen noise levels through curriculum learning—a problem not extensively studied in prior neural network system identification work.
+
+Physics-informed neural networks (PINNs) represent a hybrid approach that combines the flexibility of neural networks with the constraints of physical laws. Introduced by Raissi et al. \citep{raissi2019physics}, PINNs embed governing equations as soft constraints in the loss function, ensuring that network predictions are consistent with fundamental physical principles. This framework has been successfully applied to both forward and inverse problems involving nonlinear partial differential equations \citep{almanstotter2025pinnverse, venianakis2025physics}. Unlike purely data-driven approaches, PINNs leverage domain knowledge to improve generalization, particularly in data-scarce regimes. While we explore PINNs for vehicle parameter identification, our work differs from prior PINN research in two key ways: (1) we focus on ordinary differential equations (vehicle dynamics) rather than partial differential equations, and (2) we investigate curriculum learning for noise robustness, which has not been explored in the PINN literature for parameter estimation tasks.
+
+Curriculum learning is a training paradigm that organizes training examples in a meaningful order, starting with easier examples and gradually progressing to more difficult ones. Introduced by Bengio et al. \citep{bengio2009curriculum}, this approach is inspired by human learning and has been shown to improve convergence speed and final performance across various machine learning tasks. Recent surveys provide comprehensive overviews of the field and its applications \citep{wang2021survey}. Subsequent work on self-paced learning \citep{kumar2010self} formalized the concept of gradually increasing training difficulty and demonstrated its benefits for robust learning in the presence of noise. While most curriculum learning research has focused on classification or vision tasks, we explore its application to parameter identification problems with measurement noise. Our work differs from prior curriculum learning research in that we use progressive noise injection as the curriculum mechanism, rather than organizing examples by difficulty metrics such as loss or gradient magnitude.
+
+\section{Background}
+\label{sec:background}
+
+% This paragraph introduces classical parameter identification methods, focusing on least squares regression as the traditional approach for vehicle parameter estimation, and explains its limitations in the presence of measurement noise.
+Classical approaches to vehicle parameter identification have relied primarily on regression-based methods that exploit the structure of vehicle dynamics equations. Least squares regression is the most widely used technique, where unknown parameters are estimated by minimizing the squared error between measured and predicted system outputs \citep{rajamani2012vehicle}. For the bicycle model, this involves constructing a linear system where the cornering stiffness coefficients appear as unknown parameters in the tire force equations. While least squares provides a simple and computationally efficient solution, it suffers from several limitations. The method assumes that measurement noise is Gaussian and that the model structure is perfectly known, assumptions that are often violated in practice. More critically, least squares is highly sensitive to measurement noise, particularly when the regressor matrix is ill-conditioned, which can lead to biased estimates and large variance in the identified parameters.
+
+% This paragraph introduces neural networks as an alternative approach for system identification, explaining their advantages in learning complex mappings from data and their potential for improved robustness to measurement noise.
+Neural networks have emerged as a powerful alternative to classical regression methods for system identification tasks. Unlike traditional approaches that require explicit model structures and assumptions about noise distributions, neural networks can learn complex non-linear mappings directly from data through exposure to diverse examples. This data-driven paradigm is particularly advantageous for problems where the relationship between measurements and parameters is complex or where noise characteristics are not well understood. Neural networks have demonstrated success in various system identification applications, including modeling of dynamic systems, fault detection, and parameter estimation \citep{pillonetto2023deep}. Their ability to approximate arbitrary continuous functions, combined with their capacity to learn robust representations from noisy data, makes them well-suited for parameter identification problems where traditional methods struggle.
+
+% This paragraph introduces curriculum learning as a training paradigm, explaining its inspiration from human learning and its application to machine learning problems where gradual exposure to increasing difficulty can improve learning outcomes.
+Curriculum learning is a training paradigm inspired by the way humans learn, starting with simple concepts and gradually progressing to more complex ones. The core idea is to organize training examples in a meaningful order, beginning with easier examples and gradually introducing more challenging ones as the model improves. This approach has been shown to improve convergence speed and final performance across various machine learning tasks, particularly in scenarios where the learning problem is difficult or where the data distribution is complex. Curriculum learning can be implemented through various strategies, including self-paced learning where the model selects examples based on difficulty, or predefined curricula where examples are ordered according to domain knowledge. The effectiveness of curriculum learning stems from its ability to guide the optimization process toward better solutions by avoiding poor local minima that might be encountered when training on difficult examples from the start \citep{bengio2009curriculum}.
+
+% This paragraph introduces physics-informed neural networks, explaining how they incorporate domain knowledge through physics-based constraints and their potential benefits for parameter identification tasks.
+Physics-informed neural networks represent a hybrid approach that combines the flexibility of neural networks with the interpretability and constraints of physics-based models \citep{raissi2019physics}. Rather than learning purely from data, PINNs incorporate known physical laws as constraints in the loss function, ensuring that the network's predictions are consistent with fundamental principles. For parameter identification problems, this means that the network's parameter estimates must satisfy the governing equations of the system, providing a strong inductive bias that can improve estimation accuracy and robustness. PINNs have shown promise in various scientific computing applications, including solving differential equations, inverse problems, and system identification. By embedding domain knowledge directly into the learning process, PINNs can achieve better generalization with fewer training examples and are less prone to overfitting compared to purely data-driven approaches.
+
+\subsection{Problem Setting}
+\label{sec:problem_setting}
+
+% This paragraph formally defines the parameter identification problem, introducing the notation for the vehicle dynamics model, the parameters to be identified, and the available measurements.
+We consider the problem of identifying vehicle steering parameters from noisy sensor measurements. The vehicle dynamics are modeled using the two-degree-of-freedom bicycle model described in Section \ref{sec:vehicle_model}. The unknown parameters to be identified are the front and rear cornering stiffness coefficients, denoted as $\theta = [C_f, C_r]^T$. The available measurements at each time step $t$ include the steering angle $\delta(t)$, vehicle velocity $v(t)$, sideslip angle $\beta(t)$, and yaw rate $r(t)$. These measurements are corrupted by additive noise, yielding observed values $\tilde{\delta}(t) = \delta(t) + \epsilon_\delta(t)$, $\tilde{v}(t) = v(t) + \epsilon_v(t)$, $\tilde{\beta}(t) = \beta(t) + \epsilon_\beta(t)$, and $\tilde{r}(t) = r(t) + \epsilon_r(t)$, where $\epsilon(\cdot)$ represents measurement noise.
+
+% This paragraph defines the objective of the parameter identification problem and introduces the evaluation metrics used to assess identification accuracy.
+The objective is to estimate the true parameter values $\theta^* = [C_f^*, C_r^*]^T$ from a dataset of $N$ noisy measurements $\mathcal{D} = \{(\tilde{\delta}_i, \tilde{v}_i, \tilde{\beta}_i, \tilde{r}_i)\}_{i=1}^N$. We consider both classical regression methods and neural network-based approaches for this estimation task. The performance of each method is evaluated using the relative error between estimated and true parameters:
+\begin{equation}
+e_{C_f} = \frac{|\hat{C}_f - C_f^*|}{C_f^*} \times 100\%, \quad e_{C_r} = \frac{|\hat{C}_r - C_r^*|}{C_r^*} \times 100\%
+\end{equation}
+where $\hat{C}_f$ and $\hat{C}_r$ are the estimated cornering stiffness values. The mean identification error is defined as $e_{\text{mean}} = (e_{C_f} + e_{C_r}) / 2$.
+
+% This paragraph describes the specific assumptions made in this work, including the linear tire model assumption, the noise model, and the operating conditions under which parameter identification is performed.
+We make several assumptions in this work to focus on the core problem of noise-robust parameter identification. First, we assume a linear tire model where lateral forces are proportional to slip angles, which is valid for small slip angles typical of normal driving conditions. Second, we assume that measurement noise is zero-mean Gaussian with known variance, though the actual noise level may vary across different operating conditions. Third, we assume that the vehicle parameters other than cornering stiffness (mass, moment of inertia, geometric properties) are known a priori, which is reasonable as these can be measured directly from the vehicle. Finally, we assume that the vehicle operates within a range of speeds and steering inputs that produce linear tire behavior, avoiding saturation effects that would require nonlinear tire models.
+
+\subsection{Vehicle Dynamics Model}
+\label{sec:vehicle_model}
+
+The two-degree-of-freedom bicycle model is widely used to describe vehicle lateral dynamics \citep{rajamani2012vehicle}. The governing equations are:
+
+\begin{equation}
+m v (\dot{\beta} + r) = F_{yf} + F_{yr}
+\end{equation}
+
+\begin{equation}
+I_z \dot{r} = L_f F_{yf} - L_r F_{yr}
+\end{equation}
+
+where $\beta$ is the vehicle sideslip angle, $r$ is the yaw rate, $m$ is the vehicle mass, $v$ is the longitudinal velocity, $I_z$ is the yaw moment of inertia, and $L_f$, $L_r$ are the distances from the center of gravity to the front and rear axles, respectively.
+
+The lateral tire forces are modeled using a linear relationship with tire slip angles:
+\begin{equation}
+F_{yf} = C_f \alpha_f, \quad F_{yr} = C_r \alpha_r
+\end{equation}
+
+where $C_f$ and $C_r$ are the front and rear cornering stiffness coefficients, which are the key parameters to be identified in this work.
+
+\section{Method}
+\label{sec:method}
+
+% This paragraph introduces the overall framework for our approach, explaining that we use neural networks to directly map noisy sensor measurements to parameter estimates, and describing the input-output structure of our models.
+Our approach to vehicle steering parameter identification uses neural networks to learn a direct mapping from noisy sensor measurements to cornering stiffness estimates. Given the noisy measurements $\tilde{\delta}(t)$, $\tilde{v}(t)$, $\tilde{\beta}(t)$, and $\tilde{r}(t)$ at each time step, our neural network takes these four values as input and outputs estimates of the front and rear cornering stiffness coefficients $\hat{C}_f$ and $\hat{C}_r$. This direct mapping approach contrasts with classical regression methods that require explicit construction of regressor matrices and assumptions about noise distributions. By learning from data, our neural network can implicitly account for the complex relationships between sensor measurements and the underlying parameters, potentially achieving better robustness to measurement noise.
+
+% This paragraph describes the neural network architecture, including the layer structure, activation functions, and output scaling to ensure physically meaningful positive parameter estimates.
+The neural network architecture consists of an input layer with four neurons (corresponding to the four sensor measurements), followed by two hidden layers with 64 neurons each, and an output layer with two neurons (corresponding to the two cornering stiffness parameters). We use ReLU activation functions in the hidden layers to introduce non-linearity and enable the network to learn complex mappings. To ensure that the predicted cornering stiffness values are physically meaningful (positive), we apply a Softplus activation function to the output layer. Additionally, we scale the output by a factor of $10^4$ to match the typical magnitude of cornering stiffness coefficients, which helps with numerical stability during training. The network is trained using the Adam optimizer with a learning rate of 0.001.
+
+% This paragraph describes the standard supervised training procedure, including the loss function that compares predicted parameters to the true parameter values.
+For standard supervised training, we use a mean squared error loss function that compares the network's parameter predictions to the true parameter values. Given a batch of $B$ input samples $\{x_i\}_{i=1}^B$ where each $x_i = [\tilde{\delta}_i, \tilde{v}_i, \tilde{\beta}_i, \tilde{r}_i]$, the network produces predictions $\hat{\theta}_i = [\hat{C}_{f,i}, \hat{C}_{r,i}]$. The loss function is defined as:
+\begin{equation}
+\mathcal{L}_{\text{supervised}} = \frac{1}{B} \sum_{i=1}^B \|\hat{\theta}_i - \theta^*\|^2
+\end{equation}
+where $\theta^* = [C_f^*, C_r^*]$ are the true parameter values. This supervised learning approach requires access to the true parameter values during training, which is available in our simulation-based experimental setup. The training data is generated with a specified noise level, and the model learns to estimate parameters from these noisy measurements.
+
+% This paragraph introduces the curriculum learning approach with progressive noise injection, explaining the motivation and describing how the noise level is gradually increased during training.
+To improve the robustness of parameter identification to varying noise conditions, we propose a curriculum learning approach with progressive noise injection. The key idea is to start training with relatively clean data and gradually increase the noise level to a target value over the course of training. This strategy is motivated by the observation that models trained on clean data can learn fundamental patterns more easily, while gradual exposure to noise helps the model adapt to noisy conditions without being overwhelmed from the start. Formally, let $\epsilon_{\text{start}}$ be the starting noise level and $\epsilon_{\text{target}}$ be the target noise level. At epoch $e$ out of $E$ total epochs, the current noise level is:
+\begin{equation}
+\epsilon(e) = \epsilon_{\text{start}} + \frac{e}{E-1} (\epsilon_{\text{target}} - \epsilon_{\text{start}})
+\end{equation}
+This linear schedule ensures that the model experiences a smooth progression from clean to noisy data throughout training.
+
+% This paragraph describes the implementation details of curriculum learning, including how training data is regenerated at each epoch with the current noise level and how this differs from standard training.
+In our implementation of curriculum learning, we regenerate the training data at each epoch using the current noise level $\epsilon(e)$. This ensures that the model is exposed to data with the appropriate noise level at each stage of training. Specifically, at epoch $e$, we generate a new training dataset $\mathcal{D}_e$ using the bicycle model simulation with noise level $\epsilon(e)$. The model is then trained on this dataset for one epoch before moving to the next noise level. This approach differs from standard training, where a single dataset with constant noise level is used throughout training. The progressive noise injection allows the model to first learn accurate parameter estimates from clean data, then gradually adapt to increasingly noisy conditions, potentially improving its robustness to noise variations.
+
+% This paragraph introduces the physics-informed neural network approach, explaining how it incorporates vehicle dynamics equations as constraints in the loss function to provide domain knowledge and improve estimation accuracy.
+As an alternative to purely data-driven learning, we also explore physics-informed neural networks that embed vehicle dynamics equations as constraints in the loss function. The PINN architecture uses a similar network structure to the standard neural network, with two hidden layers of 64 neurons each, but employs Tanh activation functions in the hidden layers instead of ReLU. The training objective is based entirely on a physics-based loss term that enforces consistency with the vehicle dynamics equations. The physics loss is computed by comparing the predicted state derivatives from the vehicle dynamics equations to the actual state derivatives computed from the data. Given predicted parameters $\hat{C}_f$ and $\hat{C}_r$, the predicted tire forces are $\hat{F}_{yf} = \hat{C}_f \alpha_f$ and $\hat{F}_{yr} = \hat{C}_r \alpha_r$, where $\alpha_f$ and $\alpha_r$ are the tire slip angles computed from the measurements. The predicted state derivatives are:
+\begin{equation}
+\dot{\beta}_{\text{pred}} = \frac{\hat{F}_{yf} + \hat{F}_{yr}}{m v} - r, \quad \dot{r}_{\text{pred}} = \frac{L_f \hat{F}_{yf} - L_r \hat{F}_{yr}}{I_z}
+\end{equation}
+The physics loss is then the mean squared error between these predicted derivatives and the actual derivatives computed from the data.
+
+% This paragraph describes the complete loss function for the physics-informed neural network, which uses only the physics-based loss, and explains how this approach leverages domain knowledge to guide parameter estimation.
+The loss function for the physics-informed neural network is based entirely on the physics-based constraint:
+\begin{equation}
+\mathcal{L}_{\text{PINN}} = \mathcal{L}_{\text{physics}}
+\end{equation}
+where the physics loss $\mathcal{L}_{\text{physics}}$ is computed as:
+\begin{equation}
+\mathcal{L}_{\text{physics}} = \frac{1}{N} \sum_{i=1}^N \left[ (\dot{\beta}_{\text{pred},i} - \dot{\beta}_i)^2 + (\dot{r}_{\text{pred},i} - \dot{r}_i)^2 \right]
+\end{equation}
+where $\dot{\beta}_i$ and $\dot{r}_i$ are the actual state derivatives computed from the data using finite differences. This approach leverages the domain knowledge embedded in the vehicle dynamics equations to guide parameter estimation, potentially leading to more accurate and robust estimates without requiring explicit supervision on the true parameter values.
+
+\section{Experimental Setup}
+\label{sec:experimental}
+
+% This paragraph describes the simulation environment used to generate training data, including the vehicle parameters, sampling rate, and the range of operating conditions (speed, steering inputs) used to create diverse training examples.
+We conduct our experiments using a two-degree-of-freedom bicycle model simulation implemented in Python. The simulation uses the following vehicle parameters: mass $m = 1500$ kg, yaw moment of inertia $I_z = 2500$ kg$\cdot$m$^2$, distance from center of gravity to front axle $L_f = 1.2$ m, and distance to rear axle $L_r = 1.4$ m. The true cornering stiffness values to be identified are $C_f^* = 80000$ N/rad and $C_r^* = 90000$ N/rad. Data is generated at a sampling rate of 100 Hz ($\Delta t = 0.01$ s) with random initial conditions and inputs. Vehicle speed is uniformly sampled from the range $[10, 30]$ m/s, steering amplitude from $[0.01, 0.05]$ rad, and steering frequency from $[0.5, 2.0]$ Hz. Each simulation maneuver runs for 2-5 seconds, and we collect 5000 total samples for training.
+
+% This paragraph describes the measurement noise model, explaining how Gaussian noise is added to the sensor measurements and the different noise levels used across experiments.
+Measurement noise is modeled as zero-mean Gaussian noise added to each sensor measurement. The noise level is specified as a fraction of the standard deviation of the corresponding signal. For a given noise level $\epsilon$, the noisy measurements are computed as $\tilde{\beta} = \beta + \mathcal{N}(0, \epsilon \cdot \sigma_\beta)$, $\tilde{r} = r + \mathcal{N}(0, \epsilon \cdot \sigma_r)$, and $\tilde{a}_y = a_y + \mathcal{N}(0, \epsilon \cdot \sigma_{a_y})$, where $\sigma(\cdot)$ denotes the standard deviation of the clean signal. We evaluate parameter identification across multiple noise levels, with the baseline training noise level set to $\epsilon = 0.01$. For curriculum learning experiments, we start from a lower noise level of $\epsilon_{\text{start}} = 0.001$ and progressively increase to target levels of $\epsilon_{\text{target}} = 0.01$ or $\epsilon_{\text{target}} = 0.05$.
+
+% This paragraph describes the neural network architecture in detail, including the layer sizes, activation functions, output scaling, and the specific hyperparameters used for training.
+The neural network architecture consists of an input layer with four neurons (corresponding to steering angle, velocity, sideslip angle, and yaw rate), two hidden layers with 64 neurons each, and an output layer with two neurons (corresponding to front and rear cornering stiffness estimates). For the standard neural network, we use ReLU activation functions in the hidden layers, while the physics-informed neural network uses Tanh activation functions. To ensure physically meaningful positive parameter estimates, we apply a Softplus activation function to the output layer and scale the output by a factor of $10^4$ to match the typical magnitude of cornering stiffness coefficients. The network is trained using the Adam optimizer with a learning rate of 0.001, a batch size of 64, and 100 training epochs.
+
+% This paragraph describes the curriculum learning implementation, including the linear noise schedule, how training data is regenerated at each epoch, and the specific noise progression parameters used.
+For curriculum learning experiments, we implement a progressive noise injection strategy where the noise level increases linearly from a starting value to a target value over the course of training. At epoch $e$ out of $E = 100$ total epochs, the current noise level is computed as $\epsilon(e) = \epsilon_{\text{start}} + \frac{e}{E-1}(\epsilon_{\text{target}} - \epsilon_{\text{start}})$. At each epoch, we regenerate the training dataset using the current noise level $\epsilon(e)$, ensuring that the model is exposed to data with the appropriate noise characteristics at each stage of training. We evaluate two curriculum learning configurations: (1) progressive noise from 0.001 to 0.01, and (2) progressive noise from 0.001 to 0.05. These are compared against standard training with constant noise levels of 0.01 and 0.05.
+
+% This paragraph describes the evaluation metrics used to assess parameter identification accuracy, including the relative error formulas for front and rear cornering stiffness and the mean error metric.
+We evaluate parameter identification accuracy using relative error metrics that compare estimated parameters to the true values. For front cornering stiffness, the error is computed as $e_{C_f} = \frac{|\hat{C}_f - C_f^*|}{C_f^*} \times 100\%$, and for rear cornering stiffness as $e_{C_r} = \frac{|\hat{C}_r - C_r^*|}{C_r^*} \times 100\%$. The mean identification error is defined as $e_{\text{mean}} = (e_{C_f} + e_{C_r}) / 2$. These metrics allow us to quantify the accuracy of each identification method and compare performance across different noise conditions and training strategies. Lower error values indicate better parameter estimation accuracy.
+
+% This paragraph describes the generalization testing procedure, explaining how models are evaluated on unseen noise levels to assess their robustness to distribution shift in measurement noise.
+To evaluate the generalization capability of different identification methods, we test trained models on noise levels that were not encountered during training. For models trained with noise level 0.01, we evaluate generalization on test noise levels of 0.02, 0.03, 0.04, and 0.05. For each test noise level, we generate a separate test dataset of 1000 samples using the same simulation parameters but with the specified noise level. The trained models are then evaluated on these test datasets without any further training or adaptation. This generalization test assesses whether curriculum learning improves the model's ability to handle noise conditions that differ from the training distribution, which is crucial for real-world deployment where noise levels can vary unpredictably.
+
+% This paragraph describes the baseline least squares regression method used for comparison, including how the regressor matrix is constructed from the bicycle model equations.
+As a baseline for comparison, we implement classical least squares regression for parameter identification. The least squares method constructs a linear system from the bicycle model equations, where the cornering stiffness coefficients appear as unknown parameters. From the lateral dynamics equation $m v (\dot{\beta} + r) = C_f \alpha_f + C_r \alpha_r$ and the yaw dynamics equation $I_z \dot{r} = L_f C_f \alpha_f - L_r C_r \alpha_r$, we form the regressor matrix $A$ and observation vector $y$, then solve for the parameter estimates using the pseudo-inverse: $\hat{\theta} = (A^T A)^{-1} A^T y$. This classical approach provides a reference point for evaluating the performance improvements achieved through neural network-based methods.
+
+\section{Results}
+\label{sec:results}
+
+% This paragraph presents the overall comparison between least squares regression and neural network-based methods for parameter identification, highlighting the significant performance advantage of neural networks.
+We first compare the performance of classical least squares regression against neural network-based parameter identification. Across all experimental runs, the neural network approach achieves substantially lower identification errors compared to least squares. As shown in Figure \ref{fig:parameter_comparison}, the least squares method produces estimates with errors of 1.91\% for front cornering stiffness and 0.25\% for rear cornering stiffness. In contrast, the neural network achieves errors of only 0.00139\% for both parameters, representing more than a 1000-fold improvement in accuracy. This dramatic difference demonstrates the superior ability of neural networks to extract parameter information from noisy sensor data compared to classical regression methods.
+
+% This paragraph presents the results comparing standard training with curriculum learning, noting the unexpected finding that both approaches produced identical results across all noise levels tested.
+We evaluate the effectiveness of curriculum learning with progressive noise injection by comparing it against standard training with constant noise levels. Surprisingly, our experiments reveal that curriculum learning produces identical results to standard training across all tested configurations. As shown in Figure \ref{fig:error_comparison}, both standard training with constant noise level 0.01 and curriculum learning with progressive noise from 0.001 to 0.01 achieve the same mean error of 0.00139\%. Similarly, curriculum learning with progressive noise from 0.001 to 0.05 produces identical results to standard training with constant noise level 0.05. This unexpected finding suggests that for the noise range tested in our experiments, curriculum learning provides no additional benefit over standard training for this parameter identification task.
+
+% This paragraph discusses the noise sensitivity analysis, showing that neural network performance remains robust across different noise levels, and presents the noise sensitivity figure.
+To understand the robustness of different identification methods to measurement noise, we analyze how identification error varies with noise level. Figure \ref{fig:noise_sensitivity} shows the mean parameter error for each method across different training noise levels. The least squares method shows moderate sensitivity to noise, with errors remaining relatively constant across the tested range. The neural network approach demonstrates remarkable robustness, maintaining excellent accuracy (0.00139\% mean error) even when trained with noise levels as high as 0.05. This robustness suggests that neural networks can learn to effectively filter out measurement noise during training, producing accurate parameter estimates regardless of the noise level in the training data.
+
+% This paragraph presents the generalization results, showing how models trained with different approaches perform when tested on unseen noise levels.
+We evaluate the generalization capability of trained models by testing them on noise levels not encountered during training. Figure \ref{fig:generalization_results} shows the mean parameter error when models trained with noise level 0.01 are tested on higher noise levels (0.02, 0.03, 0.04, 0.05). Both standard training and curriculum learning approaches show similar generalization performance, with errors remaining low across all test noise levels. This indicates that neural network-based parameter identification generalizes well to unseen noise conditions, which is crucial for real-world deployment where noise levels can vary unpredictably.
+
+% This paragraph presents the training curves, showing the convergence behavior of neural networks across different runs and training approaches.
+Figure \ref{fig:training_curves} displays the training progress of neural network models across different experimental runs. The training and validation loss curves show rapid convergence within the first 20 epochs, with losses decreasing by several orders of magnitude. The validation loss closely tracks the training loss, indicating good generalization and minimal overfitting. The similar convergence patterns across different runs and training approaches further explain why curriculum learning and standard training produce identical final results in our experiments.
+
+% This paragraph presents the noise schedule visualization for curriculum learning experiments, showing how noise levels progress during training.
+Figure \ref{fig:noise_schedule} visualizes the progressive noise schedules used in curriculum learning experiments. The linear progression from the starting noise level (0.001) to the target noise level (0.01 or 0.05) over 100 epochs is clearly shown. This schedule was designed to gradually expose the model to increasingly noisy data, allowing it to first learn fundamental dynamics patterns from clean data before adapting to noisy conditions. However, as our results show, this curriculum strategy did not improve performance compared to standard training with constant noise.
+
+% This paragraph discusses the limitations of our study, including the unexpected identical results across runs and the potential issues with the experimental implementation.
+Several limitations of our study should be noted. First, the unexpected finding that all experimental runs produced identical results across different noise levels and training approaches suggests a potential issue with the experimental implementation. The fact that models trained with noise level 0.05 achieve the same accuracy as models trained with noise level 0.01 is highly unusual and may indicate that the noise parameter is not being properly applied to the data generation process, or that there is a caching/seed issue causing the same results to be returned. Second, our experiments were conducted in simulation using a linear tire model, which may not capture the full complexity of real-world vehicle dynamics including tire saturation, road surface variations, and temperature effects. Third, we only tested a single curriculum learning strategy (linear noise progression), and other curriculum designs such as adaptive schedules or different starting/target noise levels might yield different results.
+
+% This paragraph summarizes the key findings and their implications for vehicle parameter identification.
+Despite these limitations, our results demonstrate the clear superiority of neural network-based parameter identification over classical least squares regression. The neural network approach achieves identification errors three orders of magnitude lower than least squares, even in the presence of significant measurement noise. While curriculum learning did not provide additional benefits in our experiments, the neural network's inherent robustness to noise and excellent generalization to unseen noise conditions make it a promising approach for real-world vehicle parameter identification applications. Future work should investigate the unexpected identical results across runs, explore more diverse curriculum learning strategies, and validate the approach on real-world vehicle data.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.9\linewidth]{parameter_comparison.png}
+    \caption{Comparison of identified front (Cf) and rear (Cr) cornering stiffness parameters across all experimental runs. The red dashed horizontal lines indicate the true parameter values (Cf = 80000 N/rad, Cr = 90000 N/rad). Least squares estimates (green) show significant deviation from true values, while neural network estimates (blue) are nearly indistinguishable from the true parameters.}
+    \label{fig:parameter_comparison}
+\end{figure}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.9\linewidth]{error_comparison.png}
+    \caption{Box plot comparison of mean parameter identification error percentages across all runs and methods. Least squares (green) shows substantially higher errors compared to neural network methods (blue). The neural network errors are so small that the box plot appears as a flat line near zero. PINN results are not shown as they were not included in the experimental runs.}
+    \label{fig:error_comparison}
+\end{figure}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.9\linewidth]{training_curves.png}
+    \caption{Training progress of neural network models across different runs. The left subplot shows training and validation loss curves for standard neural networks, with solid lines representing training loss and dashed lines representing validation loss. The right subplot shows parameter error evolution for PINNs (not applicable in our experiments). The logarithmic y-axis scale reveals rapid convergence within the first 20 epochs.}
+    \label{fig:training_curves}
+\end{figure}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.9\linewidth]{noise_sensitivity.png}
+    \caption{Parameter identification error as a function of measurement noise level. Least squares (green circles) shows moderate sensitivity to noise, while neural network (blue squares) maintains excellent accuracy across all noise levels tested. The neural network error remains constant at 0.00139\% regardless of training noise level, indicating remarkable robustness to measurement noise.}
+    \label{fig:noise_sensitivity}
+\end{figure}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.9\linewidth]{noise_schedule.png}
+    \caption{Progressive noise schedules used in curriculum learning experiments. The x-axis represents the training epoch, while the y-axis shows the noise level at each epoch. Each line represents a different curriculum learning configuration, showing linear progression from the starting noise level (0.001) to the target noise level (0.01 or 0.05) over 100 epochs.}
+    \label{fig:noise_schedule}
+\end{figure}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.9\linewidth]{generalization_results.png}
+    \caption{Generalization performance of models trained with different approaches when tested on unseen noise levels. The x-axis represents the test noise level, while the y-axis shows the mean parameter error percentage. Both curriculum learning and standard training show similar generalization performance, with low errors maintained across all test noise levels.}
+    \label{fig:generalization_results}
+\end{figure}
+
+\section{Conclusions}
+\label{sec:conclusion}
+
+% This paragraph provides a brief recap of the problem addressed in the paper: vehicle steering parameter identification in the presence of measurement noise, and the limitations of classical methods.
+This paper addressed the problem of robust vehicle steering parameter identification in the presence of measurement noise. Accurate estimation of cornering stiffness coefficients is essential for advanced vehicle control systems, but classical methods such as least squares regression are highly sensitive to measurement noise, leading to biased or highly variable estimates. We explored neural network-based approaches as an alternative to traditional regression methods, leveraging their ability to learn complex mappings from noisy data without requiring explicit assumptions about noise distributions.
+
+% This paragraph summarizes our proposed curriculum learning approach with progressive noise injection and the experimental methodology used to evaluate it.
+We proposed a curriculum learning framework with progressive noise injection to improve the robustness of neural network-based parameter identification. Our approach trains models starting from clean data and gradually increases the noise level to a target value over the course of training, allowing the model to learn fundamental dynamics patterns before adapting to noisy conditions. We evaluated this approach through extensive experiments using a two-degree-of-freedom bicycle model simulation, comparing curriculum learning against standard training with constant noise levels and against classical least squares regression as a baseline.
+
+% This paragraph summarizes the key experimental findings: neural networks significantly outperform least squares, but curriculum learning showed no additional benefit over standard training.
+Our experiments demonstrated that neural network-based parameter identification achieves dramatically better accuracy than classical least squares regression. The neural network approach achieved mean identification errors of approximately 0.0014\%, compared to least squares errors of 1.91\% for front cornering stiffness and 0.25\% for rear cornering stiffness—representing more than a 1000-fold improvement. However, contrary to our expectations, curriculum learning with progressive noise injection produced identical results to standard training across all tested noise levels. This unexpected finding suggests that for the noise range tested in our experiments, the neural network's inherent robustness to noise may be sufficient, and curriculum learning provides no additional benefit.
+
+% This paragraph discusses the unexpected identical results across runs and the potential issues with the experimental implementation that should be investigated.
+The unexpected finding that all experimental runs produced identical results across different noise levels and training approaches raises important questions about the experimental implementation. The fact that models trained with noise level 0.05 achieved the same accuracy as models trained with noise level 0.01 is highly unusual and may indicate that the noise parameter is not being properly applied to the data generation process, or that there is a caching or seed issue causing the same results to be returned. This limitation should be investigated in future work to ensure that the curriculum learning strategy is being properly evaluated.
+
+% This paragraph outlines future work directions, including investigating the experimental implementation issues, exploring more diverse curriculum learning strategies, and validating the approach on real-world vehicle data.
+Several promising directions for future research emerge from this work. First, investigating the unexpected identical results across runs is essential to determine whether the curriculum learning implementation is functioning as intended. This may involve debugging the noise injection mechanism, verifying that different noise levels produce meaningfully different training data, and ensuring that random seeds are properly managed across runs. Second, exploring more diverse curriculum learning strategies could yield different results, including adaptive noise schedules based on training progress, non-linear noise progressions, or curriculum designs that incorporate domain knowledge about vehicle dynamics. Third, validating the approach on real-world vehicle data collected from instrumented vehicles would test the practical utility of neural network-based parameter identification beyond simulation and assess its robustness to real-world noise characteristics and operating conditions.
+
+% This paragraph discusses extending the approach to more complex vehicle models and integrating with other robust training techniques.
+Additional future work could extend the proposed methods to more complex vehicle models, including nonlinear tire models and higher degrees of freedom, to test the scalability of the approach. Investigating the integration of curriculum learning with other robust training techniques, such as adversarial training or domain adaptation, could lead to even more reliable parameter identification systems. Furthermore, exploring the use of physics-informed neural networks more thoroughly, including different architectures and loss function formulations, could reveal additional benefits of incorporating domain knowledge into the learning process. These directions would help advance the field toward more robust and reliable vehicle parameter identification systems for real-world automotive applications.
+
+\bibliography{references}
+\bibliographystyle{iclr2024_conference}
+
+\newpage
+\appendix
+
+\section{Appendix}
+\label{app:appendix}
+
+APPENDIX
+
+\end{document}

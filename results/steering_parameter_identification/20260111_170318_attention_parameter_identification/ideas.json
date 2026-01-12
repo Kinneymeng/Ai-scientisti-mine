@@ -1,0 +1,38 @@
+[
+    {
+        "Name": "attention_parameter_identification",
+        "Title": "Attention-Enhanced Neural Networks for Vehicle Steering Parameter Identification",
+        "Experiment": "Modify the ParameterIdentificationNet to include a self-attention mechanism before the final prediction layers. The attention module will learn to weight different time-steps or input features based on their relevance to parameter identification. Compare the attention-enhanced model against the baseline neural network by measuring Cf and Cr identification errors across different noise levels (0.01, 0.02, 0.05). Track attention weights to analyze which features/time-steps are most informative.",
+        "Interestingness": 8,
+        "Feasibility": 7,
+        "Novelty": 7,
+        "novel": true
+    },
+    {
+        "Name": "curriculum_noise_training",
+        "Title": "Curriculum Learning with Progressive Noise Injection for Robust Parameter Identification",
+        "Experiment": "Implement curriculum learning where the model is first trained on clean data, then progressively exposed to increasing noise levels. Modify the training loop to start with noise_level=0.001 and gradually increase to the target noise level over the training epochs. Compare against standard training (constant noise) and evaluate robustness by testing on noise levels the model wasn't explicitly trained on. Measure both identification accuracy and generalization to unseen noise conditions.",
+        "Interestingness": 7,
+        "Feasibility": 8,
+        "Novelty": 6,
+        "novel": true
+    },
+    {
+        "Name": "temporal_recurrent_identification",
+        "Title": "Temporal Sequence Modeling with Recurrent Neural Networks for Vehicle Parameter Identification",
+        "Experiment": "Implement a recurrent neural network (RNN) for parameter identification that processes sequences of vehicle states. Create a new class SequenceParameterNet with LSTM layers that takes input tensors of shape (batch_size, sequence_length, 4) for [delta, v, beta, r]. Use a sliding window approach to generate sequences from the time-series data with a configurable window length (e.g., 20 timesteps). The final hidden state is passed through fully connected layers to predict Cf and Cr (single output per sequence). Modify data preparation to create sequence datasets and adjust training loops accordingly. Compare identification errors (Cf, Cr, mean) against the baseline feedforward NN (using the same windowed input but without recurrence) and least squares across different noise levels (0.01, 0.02, 0.05). Evaluate training convergence and stability. Additionally, ablate the effect of sequence length on performance to find an optimal window size. The experiment will demonstrate whether temporal modeling improves accuracy, robustness, and learning efficiency.",
+        "Interestingness": 8,
+        "Feasibility": 9,
+        "Novelty": 7,
+        "novel": true
+    },
+    {
+        "Name": "pacejka_parameter_identification",
+        "Title": "Neural Network Identification of Pacejka Tire Model Parameters for Vehicle Steering Dynamics",
+        "Experiment": "Implement identification of Pacejka Magic Formula tire parameters using neural networks with physics-informed constraints. Create a new class PacejkaParameterNet that takes vehicle states (delta, v, beta, r) as input and outputs key Pacejka parameters: peak coefficients (Df, Dr) and stiffness factors (Bf, Br) for front and rear tires (4 parameters total), keeping shape factors Cf, Cr fixed at 1.65 and curvature factors Ef, Er fixed at 0. Use the Magic Formula: Fy = D*sin(C*arctan(B*alpha)). Modify the physics loss function to compute tire forces using these learned parameters and compare predicted vs. measured state derivatives (beta_dot, r_dot). Train the network using physics-informed approach similar to PINN. After training, extract equivalent cornering stiffness as Cf_eq = B*C*D. Compare against linear model methods by: 1) Generating training data with mixed steering amplitudes (0.01-0.1 rad) to include nonlinear effects, 2) Evaluating on separate test sets with small-slip (linear) and large-slip (nonlinear) maneuvers, 3) Measuring both parameter identification error and state prediction error (beta, r). Implement by: adding Pacejka force computation; modifying network output to 4 parameters with Softplus activation; comparing results against baseline PINN and least squares across different noise levels. Analyze identifiability and convergence.",
+        "Interestingness": 9,
+        "Feasibility": 8,
+        "Novelty": 8,
+        "novel": true
+    }
+]

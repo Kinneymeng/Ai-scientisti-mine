@@ -1,0 +1,38 @@
+[
+    {
+        "Name": "attention_parameter_identification",
+        "Title": "Attention-Enhanced Neural Networks for Vehicle Steering Parameter Identification",
+        "Experiment": "Modify the ParameterIdentificationNet to include a self-attention mechanism before the final prediction layers. The attention module will learn to weight different time-steps or input features based on their relevance to parameter identification. Compare the attention-enhanced model against the baseline neural network by measuring Cf and Cr identification errors across different noise levels (0.01, 0.02, 0.05). Track attention weights to analyze which features/time-steps are most informative.",
+        "Interestingness": 8,
+        "Feasibility": 7,
+        "Novelty": 7,
+        "novel": true
+    },
+    {
+        "Name": "curriculum_noise_training",
+        "Title": "Curriculum Learning with Progressive Noise Injection for Robust Parameter Identification",
+        "Experiment": "Implement curriculum learning where the model is first trained on clean data, then progressively exposed to increasing noise levels. Modify the training loop to start with noise_level=0.001 and gradually increase to the target noise level over the training epochs. Compare against standard training (constant noise) and evaluate robustness by testing on noise levels the model wasn't explicitly trained on. Measure both identification accuracy and generalization to unseen noise conditions.",
+        "Interestingness": 7,
+        "Feasibility": 8,
+        "Novelty": 6,
+        "novel": true
+    },
+    {
+        "Name": "temporal_parameter_net",
+        "Title": "Sequence-Based Neural Networks for Time-Invariant Parameter Identification",
+        "Experiment": "Implement a TemporalParameterNet class that processes sequences of vehicle states [delta, v, beta, r] of fixed length L (e.g., L=50). The network uses either LSTM layers or temporal convolutional layers followed by global average pooling to produce a single [Cf, Cr] output per sequence. Modify data preparation to create overlapping sequences from the simulation data with stride S (e.g., S=10). Train using MSE loss against true constant parameters. Compare against: 1) Baseline neural network (trained on individual time steps, predictions averaged per sequence), 2) Least squares (using all data points). Evaluate on: identification error vs. noise level (0.01-0.05), prediction variance across sequences from same vehicle, and sensitivity to sequence length (L=10, 30, 50). Key implementation changes: new network class, modified DataLoader for sequences, adjusted training function to handle sequence batches.",
+        "Interestingness": 8,
+        "Feasibility": 9,
+        "Novelty": 7,
+        "novel": true
+    },
+    {
+        "Name": "uncertainty_aware_trajectory_net",
+        "Title": "Uncertainty-Aware Trajectory Networks for Robust Vehicle Parameter Identification",
+        "Experiment": "Implement a neural network that processes variable-length vehicle state trajectories to predict cornering stiffness parameters with uncertainty estimates. Key modifications: 1) Create VariableLengthTrajectoryDataset that samples trajectory segments of random lengths (10-100 timesteps) from simulation data. 2) Implement UncertaintyTrajectoryNet using bidirectional LSTM layers with Monte Carlo dropout for uncertainty estimation. The network takes sequences of [delta, v, beta, r] and outputs both mean and variance estimates for Cf and Cr. 3) Train with a negative log-likelihood loss that incorporates uncertainty. 4) Evaluate on: identification error vs. noise level (0.01-0.05), uncertainty calibration using proper scoring rules, and robustness to trajectory length variations. Compare against baseline neural network (pointwise), temporal_parameter_net (fixed-length), and least squares. Additional analysis: examine how uncertainty estimates change with noise levels and whether they can detect out-of-distribution maneuvers.",
+        "Interestingness": 8,
+        "Feasibility": 8,
+        "Novelty": 8,
+        "novel": true
+    }
+]

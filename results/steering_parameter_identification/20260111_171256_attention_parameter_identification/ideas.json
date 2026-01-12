@@ -1,0 +1,38 @@
+[
+    {
+        "Name": "attention_parameter_identification",
+        "Title": "Attention-Enhanced Neural Networks for Vehicle Steering Parameter Identification",
+        "Experiment": "Modify the ParameterIdentificationNet to include a self-attention mechanism before the final prediction layers. The attention module will learn to weight different time-steps or input features based on their relevance to parameter identification. Compare the attention-enhanced model against the baseline neural network by measuring Cf and Cr identification errors across different noise levels (0.01, 0.02, 0.05). Track attention weights to analyze which features/time-steps are most informative.",
+        "Interestingness": 8,
+        "Feasibility": 7,
+        "Novelty": 7,
+        "novel": true
+    },
+    {
+        "Name": "curriculum_noise_training",
+        "Title": "Curriculum Learning with Progressive Noise Injection for Robust Parameter Identification",
+        "Experiment": "Implement curriculum learning where the model is first trained on clean data, then progressively exposed to increasing noise levels. Modify the training loop to start with noise_level=0.001 and gradually increase to the target noise level over the training epochs. Compare against standard training (constant noise) and evaluate robustness by testing on noise levels the model wasn't explicitly trained on. Measure both identification accuracy and generalization to unseen noise conditions.",
+        "Interestingness": 7,
+        "Feasibility": 8,
+        "Novelty": 6,
+        "novel": true
+    },
+    {
+        "Name": "hybrid_tire_model_pinn",
+        "Title": "Hybrid Physics-Informed Neural Networks with Learned Tire Model Residuals for Robust Parameter Identification",
+        "Experiment": "Modify the simulation to use a nonlinear tire model: Fy = C*alpha - D*alpha^3, where C is the true cornering stiffness (Cf, Cr) and D is a known nonlinear coefficient. Generate data with varying steering amplitudes to induce different slip angle ranges. Create a HybridPhysicsNet class that includes two small neural networks (e.g., 2-layer MLPs) to predict force residuals for front and rear tires as functions of slip angles. The main network outputs Cf and Cr estimates, and the residual networks output corrections added to the linear forces. The physics loss computes tire forces as (Cf*alpha_f + NN_f(alpha_f)) and similarly for rear, then computes state derivatives. Add a regularization loss term: lambda * (NN_f(alpha_f)^2 + NN_r(alpha_r)^2) evaluated near alpha=0 to enforce linear dominance at small slips. Train using physics loss and compare identification errors of Cf, Cr against least squares and standard PINN under different nonlinear strengths (varying D). Analyze if the hybrid model correctly identifies the linear parameters and learns meaningful residuals.",
+        "Interestingness": 8,
+        "Feasibility": 7,
+        "Novelty": 8,
+        "novel": true
+    },
+    {
+        "Name": "uncertainty_quantification_steering",
+        "Title": "Bayesian Neural Networks for Uncertainty-Aware Vehicle Steering Parameter Identification",
+        "Experiment": "Modify the ParameterIdentificationNet class to include dropout layers after each hidden layer (dropout rate 0.1). During training, dropout is active for regularization. After training, perform inference with dropout enabled for 100 forward passes; for each pass, compute mean predicted Cf and Cr over the validation set to get a sample of global parameters. From these samples, compute final estimates (mean) and uncertainties (standard deviation). To evaluate calibration, run the entire identification pipeline multiple times (e.g., 10 trials with different random seeds) for each noise level (0.01, 0.02, 0.05). For each trial, check if true Cf and Cr fall within the 95% confidence interval (mean \u00b1 1.96*std). Compute coverage probability across trials. Compare against standard neural network and least squares in terms of error and uncertainty metrics. Analyze how uncertainty scales with noise and driving conditions (speed, steering amplitude).",
+        "Interestingness": 8,
+        "Feasibility": 8,
+        "Novelty": 7,
+        "novel": true
+    }
+]
