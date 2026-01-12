@@ -35,54 +35,64 @@ def plot_parameter_comparison(all_results, save_path='parameter_comparison.png')
     """
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
 
-    methods = ['Least Squares', 'Neural Network']
-    colors = ['#2ecc71', '#3498db']
     run_labels = []
-
-    # Collect data for each run
-    cf_data = {m: [] for m in methods}
-    cr_data = {m: [] for m in methods}
     true_cf = None
     true_cr = None
 
-    for run_name, results in all_results.items():
+    # First pass: collect run labels and determine which methods exist
+    for run_name, results in sorted(all_results.items()):
         if results is None:
             continue
-
         run_labels.append(run_name)
+
+    if not run_labels:
+        print("No valid results to plot")
+        return
+
+    # Collect data for each run, using NaN for missing methods
+    cf_data = {'Least Squares': [], 'Neural Network': [], 'Attention NN': []}
+    cr_data = {'Least Squares': [], 'Neural Network': [], 'Attention NN': []}
+
+    for run_name in run_labels:
+        results = all_results[run_name]
 
         if 'least_squares' in results:
             cf_data['Least Squares'].append(results['least_squares']['pred_Cf'])
             cr_data['Least Squares'].append(results['least_squares']['pred_Cr'])
             true_cf = results['least_squares']['true_Cf']
             true_cr = results['least_squares']['true_Cr']
+        else:
+            cf_data['Least Squares'].append(np.nan)
+            cr_data['Least Squares'].append(np.nan)
 
         if 'neural_network' in results:
             cf_data['Neural Network'].append(results['neural_network']['pred_Cf'])
             cr_data['Neural Network'].append(results['neural_network']['pred_Cr'])
+        else:
+            cf_data['Neural Network'].append(np.nan)
+            cr_data['Neural Network'].append(np.nan)
 
-        if 'pinn' in results:
-            if 'PINN' not in methods:
-                methods.append('PINN')
-                colors.append('#e74c3c')
-                cf_data['PINN'] = []
-                cr_data['PINN'] = []
-            cf_data['PINN'].append(results['pinn']['pred_Cf'])
-            cr_data['PINN'].append(results['pinn']['pred_Cr'])
+        if 'attention_nn' in results:
+            cf_data['Attention NN'].append(results['attention_nn']['pred_Cf'])
+            cr_data['Attention NN'].append(results['attention_nn']['pred_Cr'])
+        else:
+            cf_data['Attention NN'].append(np.nan)
+            cr_data['Attention NN'].append(np.nan)
 
-    if not run_labels:
-        print("No valid results to plot")
-        return
+    # Filter out methods that have no data at all
+    methods = [m for m in cf_data.keys() if not all(np.isnan(v) for v in cf_data[m])]
+    colors = {'Least Squares': '#2ecc71', 'Neural Network': '#3498db',
+              'Attention NN': '#9b59b6'}
 
     x = np.arange(len(run_labels))
-    width = 0.25
+    width = 0.2
 
     # Plot Cf comparison
     ax = axes[0]
     for i, method in enumerate(methods):
-        if cf_data[method]:
-            offset = (i - len(methods)/2 + 0.5) * width
-            ax.bar(x + offset, cf_data[method], width, label=method, color=colors[i], alpha=0.8)
+        offset = (i - len(methods)/2 + 0.5) * width
+        ax.bar(x + offset, cf_data[method], width, label=method,
+               color=colors.get(method, '#999999'), alpha=0.8)
 
     if true_cf:
         ax.axhline(y=true_cf, color='red', linestyle='--', linewidth=2, label=f'True Cf = {true_cf}')
@@ -98,9 +108,9 @@ def plot_parameter_comparison(all_results, save_path='parameter_comparison.png')
     # Plot Cr comparison
     ax = axes[1]
     for i, method in enumerate(methods):
-        if cr_data[method]:
-            offset = (i - len(methods)/2 + 0.5) * width
-            ax.bar(x + offset, cr_data[method], width, label=method, color=colors[i], alpha=0.8)
+        offset = (i - len(methods)/2 + 0.5) * width
+        ax.bar(x + offset, cr_data[method], width, label=method,
+               color=colors.get(method, '#999999'), alpha=0.8)
 
     if true_cr:
         ax.axhline(y=true_cr, color='red', linestyle='--', linewidth=2, label=f'True Cr = {true_cr}')
@@ -146,12 +156,12 @@ def plot_error_comparison(all_results, save_path='error_comparison.png'):
                 methods.append(method)
             all_errors[method].append(results['neural_network']['mean_error_percent'])
 
-        if 'pinn' in results:
-            method = 'PINN'
+        if 'attention_nn' in results:
+            method = 'Attention NN'
             if method not in all_errors:
                 all_errors[method] = []
                 methods.append(method)
-            all_errors[method].append(results['pinn']['mean_error_percent'])
+            all_errors[method].append(results['attention_nn']['mean_error_percent'])
 
     if not methods:
         print("No valid results to plot")
@@ -159,7 +169,7 @@ def plot_error_comparison(all_results, save_path='error_comparison.png'):
 
     # Box plot of errors
     data = [all_errors[m] for m in methods]
-    colors = ['#2ecc71', '#3498db', '#e74c3c'][:len(methods)]
+    colors = ['#2ecc71', '#3498db', '#9b59b6'][:len(methods)]
 
     bp = ax.boxplot(data, labels=methods, patch_artist=True)
     for patch, color in zip(bp['boxes'], colors):
@@ -169,6 +179,7 @@ def plot_error_comparison(all_results, save_path='error_comparison.png'):
     ax.set_ylabel('Mean Parameter Error (%)')
     ax.set_title('Parameter Identification Error Comparison')
     ax.grid(axis='y', alpha=0.3)
+    ax.set_yscale('log')
 
     # Add individual points
     for i, (method, errors) in enumerate(all_errors.items()):
@@ -183,18 +194,18 @@ def plot_error_comparison(all_results, save_path='error_comparison.png'):
 
 def plot_training_curves(all_results, save_path='training_curves.png'):
     """
-    Plot training loss curves for neural network methods
+    Plot training loss curves for neural network methods (NN and Attention NN)
     """
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
     has_nn_data = False
-    has_pinn_data = False
+    has_attn_data = False
 
-    for run_name, results in all_results.items():
+    for run_name, results in sorted(all_results.items()):
         if results is None:
             continue
 
-        # Neural Network training curves
+        # Standard Neural Network training curves
         if 'neural_network' in results and 'train_losses' in results['neural_network']:
             has_nn_data = True
             train_losses = results['neural_network']['train_losses']
@@ -204,37 +215,89 @@ def plot_training_curves(all_results, save_path='training_curves.png'):
             axes[0].plot(epochs, train_losses, label=f'{run_name} (train)', alpha=0.7)
             axes[0].plot(epochs, val_losses, '--', label=f'{run_name} (val)', alpha=0.7)
 
-        # PINN training curves
-        if 'pinn' in results and 'losses' in results['pinn']:
-            has_pinn_data = True
-            losses = results['pinn']['losses']
-            param_errors = results['pinn']['param_errors']
-            epochs = range(1, len(losses) + 1)
+        # Attention NN training curves
+        if 'attention_nn' in results and 'train_losses' in results['attention_nn']:
+            has_attn_data = True
+            train_losses = results['attention_nn']['train_losses']
+            val_losses = results['attention_nn']['val_losses']
+            epochs = range(1, len(train_losses) + 1)
 
-            axes[1].plot(epochs, param_errors, label=f'{run_name}', alpha=0.7)
+            axes[1].plot(epochs, train_losses, label=f'{run_name} (train)', alpha=0.7)
+            axes[1].plot(epochs, val_losses, '--', label=f'{run_name} (val)', alpha=0.7)
 
-    # Configure NN plot
+    # Configure Standard NN plot
     if has_nn_data:
         axes[0].set_xlabel('Epoch')
         axes[0].set_ylabel('Loss')
-        axes[0].set_title('Neural Network Training Curves')
-        axes[0].legend(fontsize=8)
+        axes[0].set_title('Standard Neural Network Training')
+        axes[0].legend(fontsize=7, loc='upper right')
         axes[0].set_yscale('log')
         axes[0].grid(True, alpha=0.3)
     else:
-        axes[0].text(0.5, 0.5, 'No NN training data', ha='center', va='center', transform=axes[0].transAxes)
-        axes[0].set_title('Neural Network Training Curves')
+        axes[0].text(0.5, 0.5, 'No Standard NN training data',
+                     ha='center', va='center', transform=axes[0].transAxes)
+        axes[0].set_title('Standard Neural Network Training')
 
-    # Configure PINN plot
-    if has_pinn_data:
+    # Configure Attention NN plot
+    if has_attn_data:
         axes[1].set_xlabel('Epoch')
-        axes[1].set_ylabel('Mean Parameter Error (%)')
-        axes[1].set_title('PINN Parameter Error During Training')
-        axes[1].legend(fontsize=8)
+        axes[1].set_ylabel('Loss')
+        axes[1].set_title('Attention-Enhanced NN Training')
+        axes[1].legend(fontsize=7, loc='upper right')
+        axes[1].set_yscale('log')
         axes[1].grid(True, alpha=0.3)
     else:
-        axes[1].text(0.5, 0.5, 'No PINN training data', ha='center', va='center', transform=axes[1].transAxes)
-        axes[1].set_title('PINN Parameter Error During Training')
+        axes[1].text(0.5, 0.5, 'No Attention NN training data',
+                     ha='center', va='center', transform=axes[1].transAxes)
+        axes[1].set_title('Attention-Enhanced NN Training')
+
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=150, bbox_inches='tight')
+    plt.close()
+    print(f"Saved: {save_path}")
+
+
+def plot_attention_weights(all_results, save_path='attention_weights.png'):
+    """
+    Plot final attention weights as bar chart for each run
+    """
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    feature_names = ['delta', 'velocity', 'beta', 'yaw_rate']
+
+    has_data = False
+    run_names = []
+    all_weights = []
+
+    for run_name, results in sorted(all_results.items()):
+        if results is None:
+            continue
+
+        if 'attention_nn' in results and 'final_attention_weights' in results['attention_nn']:
+            has_data = True
+            run_names.append(run_name)
+            all_weights.append(results['attention_nn']['final_attention_weights'])
+
+    if has_data:
+        x = np.arange(len(feature_names))
+        width = 0.8 / len(run_names) if len(run_names) > 0 else 0.15
+
+        for i, (run_name, weights) in enumerate(zip(run_names, all_weights)):
+            offset = (i - len(run_names)/2 + 0.5) * width
+            ax.bar(x + offset, weights, width, label=run_name, alpha=0.8)
+
+        ax.set_xlabel('Input Feature')
+        ax.set_ylabel('Attention Weight')
+        ax.set_title('Final Attention Weights by Feature')
+        ax.set_xticks(x)
+        ax.set_xticklabels(feature_names)
+        ax.legend(fontsize=7)
+        ax.grid(axis='y', alpha=0.3)
+        ax.set_ylim(0, 1)
+    else:
+        ax.text(0.5, 0.5, 'No attention weight data',
+                ha='center', va='center', transform=ax.transAxes)
+        ax.set_title('Final Attention Weights by Feature')
 
     plt.tight_layout()
     plt.savefig(save_path, dpi=150, bbox_inches='tight')
@@ -248,10 +311,10 @@ def plot_noise_sensitivity(all_results, save_path='noise_sensitivity.png'):
     """
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    noise_levels = []
-    ls_errors = []
-    nn_errors = []
-    pinn_errors = []
+    # Collect data with noise levels for each method
+    ls_data = []
+    nn_data = []
+    attn_data = []
 
     for run_name, results in all_results.items():
         if results is None or 'summary' not in results:
@@ -261,32 +324,30 @@ def plot_noise_sensitivity(all_results, save_path='noise_sensitivity.png'):
         if noise is None:
             continue
 
-        noise_levels.append(noise)
-
         if 'least_squares' in results:
-            ls_errors.append(results['least_squares']['mean_error_percent'])
+            ls_data.append((noise, results['least_squares']['mean_error_percent']))
         if 'neural_network' in results:
-            nn_errors.append(results['neural_network']['mean_error_percent'])
-        if 'pinn' in results:
-            pinn_errors.append(results['pinn']['mean_error_percent'])
+            nn_data.append((noise, results['neural_network']['mean_error_percent']))
+        if 'attention_nn' in results:
+            attn_data.append((noise, results['attention_nn']['mean_error_percent']))
 
-    if noise_levels:
-        # Sort by noise level
-        sorted_idx = np.argsort(noise_levels)
-        noise_levels = [noise_levels[i] for i in sorted_idx]
+    # Sort each method's data by noise level
+    if ls_data:
+        ls_data.sort(key=lambda x: x[0])
+        ls_noise, ls_errors = zip(*ls_data)
+        ax.plot(ls_noise, ls_errors, 'o-', label='Least Squares', color='#2ecc71', markersize=8)
 
-        if ls_errors:
-            ls_errors = [ls_errors[i] for i in sorted_idx]
-            ax.plot(noise_levels, ls_errors, 'o-', label='Least Squares', color='#2ecc71', markersize=8)
+    if nn_data:
+        nn_data.sort(key=lambda x: x[0])
+        nn_noise, nn_errors = zip(*nn_data)
+        ax.plot(nn_noise, nn_errors, 's-', label='Neural Network', color='#3498db', markersize=8)
 
-        if nn_errors:
-            nn_errors = [nn_errors[i] for i in sorted_idx]
-            ax.plot(noise_levels, nn_errors, 's-', label='Neural Network', color='#3498db', markersize=8)
+    if attn_data:
+        attn_data.sort(key=lambda x: x[0])
+        attn_noise, attn_errors = zip(*attn_data)
+        ax.plot(attn_noise, attn_errors, '^-', label='Attention NN', color='#9b59b6', markersize=8)
 
-        if pinn_errors:
-            pinn_errors = [pinn_errors[i] for i in sorted_idx]
-            ax.plot(noise_levels, pinn_errors, '^-', label='PINN', color='#e74c3c', markersize=8)
-
+    if ls_data or nn_data or attn_data:
         ax.set_xlabel('Noise Level')
         ax.set_ylabel('Mean Parameter Error (%)')
         ax.set_title('Parameter Identification Error vs Measurement Noise')
@@ -304,8 +365,8 @@ def plot_noise_sensitivity(all_results, save_path='noise_sensitivity.png'):
 
 def main():
     """Main plotting function"""
-    # Find all run directories
-    run_dirs = sorted(glob.glob('run_*'))
+    # Find all run directories (only directories, not .py files)
+    run_dirs = sorted([d for d in glob.glob('run_*') if os.path.isdir(d)])
 
     if not run_dirs:
         print("No run directories found!")
@@ -333,6 +394,7 @@ def main():
     plot_error_comparison(all_results)
     plot_training_curves(all_results)
     plot_noise_sensitivity(all_results)
+    plot_attention_weights(all_results)
 
     print("\nDone!")
 
