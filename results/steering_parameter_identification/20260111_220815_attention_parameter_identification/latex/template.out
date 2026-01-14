@@ -9,5 +9,6 @@
 \BOOKMARK [1][-]{section.4}{Method}{}% 9
 \BOOKMARK [1][-]{section.5}{Experimental Setup}{}% 10
 \BOOKMARK [1][-]{section.6}{Results}{}% 11
-\BOOKMARK [1][-]{section.7}{Conclusions}{}% 12
-\BOOKMARK [1][-]{appendix.A}{Appendix}{}% 13
+\BOOKMARK [2][-]{subsection.6.1}{Physics-Informed Interpretation of Attention Weights}{section.6}% 12
+\BOOKMARK [1][-]{section.7}{Conclusions}{}% 13
+\BOOKMARK [1][-]{appendix.A}{Appendix}{}% 14
