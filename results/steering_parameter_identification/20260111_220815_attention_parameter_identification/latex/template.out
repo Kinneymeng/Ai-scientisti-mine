@@ -1,13 +1,13 @@
-\BOOKMARK [1][-]{section*.2}{Introduction}{}% 1
-\BOOKMARK [1][-]{section*.3}{Related work}{}% 2
-\BOOKMARK [2][-]{section*.4}{Robust parameter estimation under noise}{section*.3}% 3
-\BOOKMARK [1][-]{section*.5}{Background}{}% 4
-\BOOKMARK [2][-]{section*.6}{Vehicle dynamics model}{section*.5}% 5
-\BOOKMARK [2][-]{section*.7}{Parameter identification methods}{section*.5}% 6
-\BOOKMARK [2][-]{section*.8}{Attention mechanisms}{section*.5}% 7
-\BOOKMARK [2][-]{section*.9}{Problem setting}{section*.5}% 8
-\BOOKMARK [1][-]{section*.10}{Method}{}% 9
-\BOOKMARK [1][-]{section*.11}{Experimental setup}{}% 10
-\BOOKMARK [1][-]{section*.12}{Results}{}% 11
-\BOOKMARK [2][-]{section*.20}{Physics-informed interpretation of attention weights}{section*.12}% 12
-\BOOKMARK [1][-]{section*.21}{Conclusions}{}% 13
+\BOOKMARK [1][-]{section*.2}{引言}{}% 1
+\BOOKMARK [1][-]{section*.3}{相关工作}{}% 2
+\BOOKMARK [2][-]{section*.4}{噪声下的鲁棒参数估计}{section*.3}% 3
+\BOOKMARK [1][-]{section*.5}{背景}{}% 4
+\BOOKMARK [2][-]{section*.6}{车辆动力学模型}{section*.5}% 5
+\BOOKMARK [2][-]{section*.7}{参数识别方法}{section*.5}% 6
+\BOOKMARK [2][-]{section*.8}{注意力机制}{section*.5}% 7
+\BOOKMARK [2][-]{section*.9}{问题设定}{section*.5}% 8
+\BOOKMARK [1][-]{section*.10}{方法}{}% 9
+\BOOKMARK [1][-]{section*.11}{实验设置}{}% 10
+\BOOKMARK [1][-]{section*.12}{结果}{}% 11
+\BOOKMARK [2][-]{section*.20}{注意力权重的物理信息解释}{section*.12}% 12
+\BOOKMARK [1][-]{section*.21}{结论}{}% 13

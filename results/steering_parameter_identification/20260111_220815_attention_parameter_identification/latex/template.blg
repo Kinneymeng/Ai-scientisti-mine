@@ -1,46 +1,46 @@
 This is BibTeX, Version 0.99d (TeX Live 2019/Debian)
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: template.aux
-The style file: iclr2024_conference.bst
+The style file: SageH.bst
 Database file #1: references.bib
 You've used 13 entries,
-            2773 wiz_defined-function locations,
-            671 strings with 7232 characters,
-and the built_in function-call counts, 5162 in all, are:
-= -- 456
-> -- 316
+            2921 wiz_defined-function locations,
+            676 strings with 7201 characters,
+and the built_in function-call counts, 11067 in all, are:
+= -- 1160
+> -- 282
 < -- 11
-+ -- 109
-- -- 96
-* -- 342
-:= -- 853
-add.period$ -- 48
++ -- 115
+- -- 97
+* -- 739
+:= -- 1464
+add.period$ -- 26
 call.type$ -- 13
-change.case$ -- 61
-chr.to.int$ -- 13
-cite$ -- 26
-duplicate$ -- 252
-empty$ -- 411
-format.name$ -- 120
-if$ -- 1069
+change.case$ -- 105
+chr.to.int$ -- 14
+cite$ -- 13
+duplicate$ -- 1123
+empty$ -- 827
+format.name$ -- 144
+if$ -- 2254
 int.to.chr$ -- 1
 int.to.str$ -- 1
-missing$ -- 14
-newline$ -- 82
+missing$ -- 113
+newline$ -- 61
 num.names$ -- 52
-pop$ -- 121
+pop$ -- 526
 preamble$ -- 1
-purify$ -- 49
+purify$ -- 84
 quote$ -- 0
-skip$ -- 200
+skip$ -- 210
 stack$ -- 0
-substring$ -- 67
-swap$ -- 13
+substring$ -- 1054
+swap$ -- 225
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 138
+type$ -- 114
 warning$ -- 0
-while$ -- 43
+while$ -- 75
 width$ -- 0
-write$ -- 184
+write$ -- 163

@@ -14,15 +14,17 @@
 \fi}
 \global\let\hyper@last\relax 
 \gdef\HyperFirstAtBeginDocument#1{#1}
-\providecommand\HyField@AuxAddToFields[1]{}
-\providecommand\HyField@AuxAddToCoFields[2]{}
+\providecommand*\HyPL@Entry[1]{}
 \citation{rajamani2012vehicle}
-\newlabel{FirstPage}{{}{1}{}{section*.1}{}}
-\@writefile{toc}{\contentsline {section}{Introduction}{1}{section*.2}\protected@file@percent }
-\newlabel{sec:intro}{{}{1}{Introduction}{section*.2}{}}
 \citation{Devos2024ALI}
 \citation{Cai2025JointEO}
 \citation{Chen2024VehicleSE}
+\HyPL@Entry{0<</S/D>>}
+\newlabel{FirstPage}{{}{1}{}{section*.1}{}}
+\@writefile{toc}{\contentsline {section}{引言}{1}{section*.2}\protected@file@percent }
+\newlabel{sec:intro}{{}{1}{引言}{section*.2}{}}
+\@writefile{toc}{\contentsline {section}{相关工作}{1}{section*.3}\protected@file@percent }
+\newlabel{sec:related}{{}{1}{相关工作}{section*.3}{}}
 \citation{Hermansdorfer2020EndtoEnd}
 \citation{Song2025DataDriven}
 \citation{Vaswani2017AttentionIA}
@@ -31,61 +33,59 @@
 \citation{Bellec2023ErrorEA}
 \citation{Zhang2025ARF}
 \citation{CastelanPerez2025FilteringAF}
-\@writefile{toc}{\contentsline {section}{Related work}{2}{section*.3}\protected@file@percent }
-\newlabel{sec:related}{{}{2}{Related work}{section*.3}{}}
-\@writefile{toc}{\contentsline {subsection}{Robust parameter estimation under noise}{2}{section*.4}\protected@file@percent }
-\newlabel{sec:robust_estimation}{{}{2}{Robust parameter estimation under noise}{section*.4}{}}
 \citation{rajamani2012vehicle}
 \citation{rajamani2012vehicle}
 \citation{Narendra1990IdentificationAC}
-\@writefile{toc}{\contentsline {section}{Background}{3}{section*.5}\protected@file@percent }
-\newlabel{sec:background}{{}{3}{Background}{section*.5}{}}
-\@writefile{toc}{\contentsline {subsection}{Vehicle dynamics model}{3}{section*.6}\protected@file@percent }
-\newlabel{sec:vehicle_model}{{}{3}{Vehicle dynamics model}{section*.6}{}}
-\@writefile{toc}{\contentsline {subsection}{Parameter identification methods}{3}{section*.7}\protected@file@percent }
-\newlabel{sec:param_id_methods}{{}{3}{Parameter identification methods}{section*.7}{}}
-\@writefile{toc}{\contentsline {subsection}{Attention mechanisms}{3}{section*.8}\protected@file@percent }
-\newlabel{sec:attention}{{}{3}{Attention mechanisms}{section*.8}{}}
-\@writefile{toc}{\contentsline {subsection}{Problem setting}{3}{section*.9}\protected@file@percent }
-\newlabel{sec:problem_setting}{{}{3}{Problem setting}{section*.9}{}}
-\@writefile{toc}{\contentsline {section}{Method}{4}{section*.10}\protected@file@percent }
-\newlabel{sec:method}{{}{4}{Method}{section*.10}{}}
-\@writefile{toc}{\contentsline {section}{Experimental setup}{4}{section*.11}\protected@file@percent }
-\newlabel{sec:experimental}{{}{4}{Experimental setup}{section*.11}{}}
-\@writefile{toc}{\contentsline {section}{Results}{5}{section*.12}\protected@file@percent }
-\newlabel{sec:results}{{}{5}{Results}{section*.12}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Parameter identification errors (\%) across different noise levels. Lower values indicate better performance.\relax }}{5}{table.caption.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{噪声下的鲁棒参数估计}{2}{section*.4}\protected@file@percent }
+\newlabel{sec:robust_estimation}{{}{2}{噪声下的鲁棒参数估计}{section*.4}{}}
+\@writefile{toc}{\contentsline {section}{背景}{2}{section*.5}\protected@file@percent }
+\newlabel{sec:background}{{}{2}{背景}{section*.5}{}}
+\@writefile{toc}{\contentsline {subsection}{车辆动力学模型}{2}{section*.6}\protected@file@percent }
+\newlabel{sec:vehicle_model}{{}{2}{车辆动力学模型}{section*.6}{}}
+\@writefile{toc}{\contentsline {subsection}{参数识别方法}{2}{section*.7}\protected@file@percent }
+\newlabel{sec:param_id_methods}{{}{2}{参数识别方法}{section*.7}{}}
+\@writefile{toc}{\contentsline {subsection}{注意力机制}{2}{section*.8}\protected@file@percent }
+\newlabel{sec:attention}{{}{2}{注意力机制}{section*.8}{}}
+\@writefile{toc}{\contentsline {subsection}{问题设定}{3}{section*.9}\protected@file@percent }
+\newlabel{sec:problem_setting}{{}{3}{问题设定}{section*.9}{}}
+\@writefile{toc}{\contentsline {section}{方法}{3}{section*.10}\protected@file@percent }
+\newlabel{sec:method}{{}{3}{方法}{section*.10}{}}
+\@writefile{toc}{\contentsline {section}{实验设置}{3}{section*.11}\protected@file@percent }
+\newlabel{sec:experimental}{{}{3}{实验设置}{section*.11}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces 不同噪声水平下的参数识别误差(\%)。较低的值表示更好的性能。\relax }}{4}{table.caption.13}\protected@file@percent }
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
-\newlabel{tab:results}{{1}{5}{Parameter identification errors (\%) across different noise levels. Lower values indicate better performance.\relax }{table.caption.13}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Mean parameter identification error as a function of measurement noise level. The attention-enhanced neural network maintains low error rates even at high noise levels, while the baseline neural network's performance degrades significantly as noise increases.\relax }}{5}{figure.caption.14}\protected@file@percent }
-\newlabel{fig:noise_sensitivity}{{1}{5}{Mean parameter identification error as a function of measurement noise level. The attention-enhanced neural network maintains low error rates even at high noise levels, while the baseline neural network's performance degrades significantly as noise increases.\relax }{figure.caption.14}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Evolution of attention weights during training for each input feature. Each line represents a different run, showing how the attention weight for that feature changed over training epochs.\relax }}{6}{figure.caption.15}\protected@file@percent }
-\newlabel{fig:attention_weights}{{2}{6}{Evolution of attention weights during training for each input feature. Each line represents a different run, showing how the attention weight for that feature changed over training epochs.\relax }{figure.caption.15}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Final converged attention weights for each input feature across all runs. The plot summarizes which features the attention mechanism ultimately deemed most important for parameter identification after training converged.\relax }}{6}{figure.caption.16}\protected@file@percent }
-\newlabel{fig:final_attention}{{3}{6}{Final converged attention weights for each input feature across all runs. The plot summarizes which features the attention mechanism ultimately deemed most important for parameter identification after training converged.\relax }{figure.caption.16}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Comparison of identified cornering stiffness parameters ($C_f$ and $C_r$) across all experimental runs and methods. True parameter values are shown as red dashed horizontal lines.\relax }}{6}{figure.caption.17}\protected@file@percent }
-\newlabel{fig:parameter_comparison}{{4}{6}{Comparison of identified cornering stiffness parameters ($C_f$ and $C_r$) across all experimental runs and methods. True parameter values are shown as red dashed horizontal lines.\relax }{figure.caption.17}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Box plot comparison of mean parameter identification errors across all methods. The y-axis uses a logarithmic scale to accommodate the wide range of error values observed.\relax }}{6}{figure.caption.18}\protected@file@percent }
-\newlabel{fig:error_comparison}{{5}{6}{Box plot comparison of mean parameter identification errors across all methods. The y-axis uses a logarithmic scale to accommodate the wide range of error values observed.\relax }{figure.caption.18}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Training and validation loss curves for the neural network-based methods. Solid lines represent training loss, while dashed lines represent validation loss. The y-axis uses a logarithmic scale.\relax }}{6}{figure.caption.19}\protected@file@percent }
-\newlabel{fig:training_curves}{{6}{6}{Training and validation loss curves for the neural network-based methods. Solid lines represent training loss, while dashed lines represent validation loss. The y-axis uses a logarithmic scale.\relax }{figure.caption.19}{}}
-\@writefile{toc}{\contentsline {subsection}{Physics-informed interpretation of attention weights}{6}{section*.20}\protected@file@percent }
-\newlabel{sec:physics_interpretation}{{}{6}{Physics-informed interpretation of attention weights}{section*.20}{}}
+\newlabel{tab:results}{{1}{4}{不同噪声水平下的参数识别误差(\%)。较低的值表示更好的性能。\relax }{table.caption.13}{}}
+\@writefile{toc}{\contentsline {section}{结果}{4}{section*.12}\protected@file@percent }
+\newlabel{sec:results}{{}{4}{结果}{section*.12}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces 平均参数识别误差作为测量噪声水平的函数。注意力增强神经网络即使在高噪声水平下也保持低误差率，而基线神经网络的性能随着噪声增加而显著退化。\relax }}{4}{figure.caption.14}\protected@file@percent }
+\newlabel{fig:noise_sensitivity}{{1}{4}{平均参数识别误差作为测量噪声水平的函数。注意力增强神经网络即使在高噪声水平下也保持低误差率，而基线神经网络的性能随着噪声增加而显著退化。\relax }{figure.caption.14}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces 每个输入特征在训练期间注意力权重的演变。每条线代表不同的运行，显示该特征的注意力权重如何在训练轮次中变化。\relax }}{4}{figure.caption.15}\protected@file@percent }
+\newlabel{fig:attention_weights}{{2}{4}{每个输入特征在训练期间注意力权重的演变。每条线代表不同的运行，显示该特征的注意力权重如何在训练轮次中变化。\relax }{figure.caption.15}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces 所有运行中每个输入特征的最终收敛注意力权重。该图总结了在训练收敛后注意力机制最终认为哪些特征对参数识别最重要。\relax }}{5}{figure.caption.16}\protected@file@percent }
+\newlabel{fig:final_attention}{{3}{5}{所有运行中每个输入特征的最终收敛注意力权重。该图总结了在训练收敛后注意力机制最终认为哪些特征对参数识别最重要。\relax }{figure.caption.16}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces 所有实验运行和方法中识别的侧偏刚度参数（$C_f$和$C_r$）的比较。真实参数值显示为红色虚线水平线。\relax }}{5}{figure.caption.17}\protected@file@percent }
+\newlabel{fig:parameter_comparison}{{4}{5}{所有实验运行和方法中识别的侧偏刚度参数（$C_f$和$C_r$）的比较。真实参数值显示为红色虚线水平线。\relax }{figure.caption.17}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces 所有方法的平均参数识别误差的箱线图比较。y轴使用对数刻度以适应观察到的广泛误差值范围。\relax }}{5}{figure.caption.18}\protected@file@percent }
+\newlabel{fig:error_comparison}{{5}{5}{所有方法的平均参数识别误差的箱线图比较。y轴使用对数刻度以适应观察到的广泛误差值范围。\relax }{figure.caption.18}{}}
+\@writefile{toc}{\contentsline {subsection}{注意力权重的物理信息解释}{5}{section*.20}\protected@file@percent }
+\newlabel{sec:physics_interpretation}{{}{5}{注意力权重的物理信息解释}{section*.20}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces 基于神经网络方法的训练和验证损失曲线。实线表示训练损失，虚线表示验证损失。y轴使用对数刻度。\relax }}{5}{figure.caption.19}\protected@file@percent }
+\newlabel{fig:training_curves}{{6}{5}{基于神经网络方法的训练和验证损失曲线。实线表示训练损失，虚线表示验证损失。y轴使用对数刻度。\relax }{figure.caption.19}{}}
 \bibstyle{SageH}
 \bibdata{references}
-\@writefile{toc}{\contentsline {section}{Conclusions}{8}{section*.21}\protected@file@percent }
-\newlabel{sec:conclusion}{{}{8}{Conclusions}{section*.21}{}}
 \bibcite{Bellec2023ErrorEA}{{1}{2023}{{Bellec et~al.}}{{}}}
 \bibcite{Cai2025JointEO}{{2}{2025}{{Cai et~al.}}{{}}}
 \bibcite{CastelanPerez2025FilteringAF}{{3}{2025}{{Castelan-Perez et~al.}}{{}}}
+\@writefile{toc}{\contentsline {section}{结论}{6}{section*.21}\protected@file@percent }
+\newlabel{sec:conclusion}{{}{6}{结论}{section*.21}{}}
 \bibcite{Chen2024VehicleSE}{{4}{2024}{{Chen et~al.}}{{}}}
 \bibcite{Devos2024ALI}{{5}{2024}{{Devos et~al.}}{{}}}
 \bibcite{Dosovitskiy2020AnII}{{6}{2021}{{Dosovitskiy et~al.}}{{}}}
 \bibcite{Hermansdorfer2020EndtoEnd}{{7}{2020}{{Hermansdorfer et~al.}}{{}}}
-\bibcite{Narendra1990IdentificationAC}{{8}{1990}{{Narendra \& Parthasarathy}}{{Narendra and Parthasarathy}}}
-\bibcite{Raissi2019PhysicsinformedNN}{{9}{2019}{{Raissi et~al.}}{{Raissi, Perdikaris, and Karniadakis}}}
+\bibcite{Narendra1990IdentificationAC}{{8}{1990}{{Narendra and Parthasarathy}}{{}}}
+\bibcite{Raissi2019PhysicsinformedNN}{{9}{2019}{{Raissi et~al.}}{{Raissi, Perdikaris and Karniadakis}}}
 \bibcite{rajamani2012vehicle}{{10}{2012}{{Rajamani}}{{}}}
 \bibcite{Song2025DataDriven}{{11}{2025}{{Song et~al.}}{{}}}
-\bibcite{Vaswani2017AttentionIA}{{12}{2017}{{Vaswani et~al.}}{{Vaswani, Shazeer, Parmar, Uszkoreit, Jones, Gomez, Kaiser, and Polosukhin}}}
+\bibcite{Vaswani2017AttentionIA}{{12}{2017}{{Vaswani et~al.}}{{Vaswani, Shazeer, Parmar, Uszkoreit, Jones, Gomez, Kaiser and Polosukhin}}}
 \bibcite{Zhang2025ARF}{{13}{2025}{{Zhang et~al.}}{{}}}
-\newlabel{LastPage}{{}{9}{Conclusions}{section*.25}{}}
+\newlabel{LastPage}{{}{7}{结论}{section*.25}{}}

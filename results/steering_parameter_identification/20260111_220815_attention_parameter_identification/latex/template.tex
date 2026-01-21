@@ -2,7 +2,12 @@
 \documentclass[Afour,sageh,times]{sagej}
 
 \usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+% Use open-source fonts that work on Linux
+\setCJKmainfont{Noto Serif CJK SC}[AutoFakeBold=true]
+\setCJKsansfont{Noto Sans CJK SC}[AutoFakeBold=true]
+\setCJKmonofont{Noto Sans Mono CJK SC}[AutoFakeBold=true]
 \usepackage{hyperref}
 \usepackage{url}
 \usepackage{booktabs}
@@ -20,72 +25,72 @@
 
 \begin{document}
 
-\runninghead{Li et al.}
+\runninghead{李等}
 
-\title{Learning to focus: Attention-enhanced neural networks for robust vehicle parameter identification}
+\title{学会聚焦：用于鲁棒车辆参数识别的注意力增强神经网络}
 
-\author{Mengmeng Li\affilnum{1}, Changyou Chen\affilnum{2} and Chen Cai\affilnum{3}}
+\author{李猛猛\affilnum{1}，陈场友\affilnum{2} 和 蔡辰\affilnum{3}}
 
-\affiliation{\affilnum{1}Department of Automotive Engineering, University Name, Country\\
-\affilnum{2}Department of Computer Science, University Name, Country\\
-\affilnum{3}Department of Mechanical Engineering, University Name, Country}
+\affiliation{\affilnum{1}汽车工程系，某某大学，中国\\
+\affilnum{2}计算机科学系，某某大学，中国\\
+\affilnum{3}机械工程系，某某大学，中国}
 
-\corrauth{Mengmeng Li, Department of Automotive Engineering, University Name, City, Postal Code, Country.}
+\corrauth{李猛猛，汽车工程系，某某大学，某某市，邮政编码，中国。}
 
 \email{mengmeng.li@example.edu}
 
 \begin{abstract}
-Accurate identification of vehicle steering parameters, particularly front and rear cornering stiffness ($C_f$ and $C_r$), is critical for vehicle control systems and safety applications. Traditional methods like least squares estimation struggle with measurement noise, while standard neural networks lack the ability to selectively focus on informative features in noisy data. We propose an attention-enhanced neural network that uses self-attention to dynamically weight input features based on their relevance to parameter identification. The attention mechanism enables the model to prioritize the most informative features while filtering out noise, addressing a key challenge in robust parameter estimation under varying noise conditions. Through extensive experiments using a two-degree-of-freedom bicycle model, we demonstrate that the attention-enhanced approach achieves up to 20x lower identification error compared to baseline neural networks at high noise levels (0.05), and perfect identification at moderate noise levels (0.02). While the attention mechanism introduces a performance trade-off at low noise levels (0.01) where the baseline performs slightly better, the learned attention weights provide interpretable insights into feature importance, revealing how the model adapts its feature selection strategy across different noise conditions.
+准确识别车辆转向参数，特别是前后轮侧偏刚度（$C_f$和$C_r$），对于车辆控制系统和安全应用至关重要。传统方法如最小二乘估计难以应对测量噪声，而标准神经网络缺乏在噪声数据中选择性聚焦信息特征的能力。我们提出了一种注意力增强神经网络，利用自注意力机制根据输入特征与参数识别的相关性动态加权。注意力机制使模型能够优先处理最具信息量的特征，同时过滤噪声，从而解决了在不同噪声条件下鲁棒参数估计的关键挑战。通过使用二自由度自行车模型进行的大量实验，我们证明，与基线神经网络相比，在高噪声水平（0.05）下，注意力增强方法的识别误差降低了20倍，并在中等噪声水平（0.02）下实现了完美识别。虽然注意力机制在低噪声水平（0.01）下引入了性能权衡，基线表现略好，但学习到的注意力权重提供了对特征重要性的可解释洞察，揭示了模型如何在不同噪声条件下调整其特征选择策略。
 \end{abstract}
 
-\keywords{Vehicle dynamics, parameter identification, neural networks, attention mechanisms, cornering stiffness, robust estimation}
+\keywords{车辆动力学，参数识别，神经网络，注意力机制，侧偏刚度，鲁棒估计}
 
 \maketitle
 
-\section{Introduction}
+\section{引言}
 \label{sec:intro}
 
-Accurate identification of vehicle steering parameters is a fundamental requirement for modern vehicle control systems and safety applications. Among these parameters, front and rear cornering stiffness ($C_f$ and $C_r$) are particularly critical as they characterize the tire-road interaction and directly influence vehicle handling, stability, and overall dynamic behavior. These parameters serve as essential inputs to advanced driver assistance systems, electronic stability control, and autonomous vehicle controllers, where accurate knowledge of vehicle dynamics is paramount for ensuring safe and reliable operation \citep{rajamani2012vehicle}.
+准确识别车辆转向参数是现代车辆控制系统和安全应用的基本要求。在这些参数中，前后轮侧偏刚度（$C_f$和$C_r$）尤为关键，因为它们表征了轮胎-道路相互作用，并直接影响车辆的操控性、稳定性和整体动力学行为。这些参数是高级驾驶辅助系统、电子稳定控制和自动驾驶车辆控制器的重要输入，在这些系统中，准确了解车辆动力学对确保安全可靠的运行至关重要\citep{rajamani2012vehicle}。
 
-The identification of cornering stiffness parameters presents significant challenges due to the inherent measurement noise present in real-world sensor data. Traditional approaches such as least squares estimation, while theoretically sound, exhibit substantial sensitivity to measurement noise, leading to degraded estimation accuracy in practical scenarios. Standard neural network approaches, though capable of learning complex mappings from data, lack the ability to selectively focus on the most informative features within noisy input representations. This limitation becomes particularly pronounced when the signal-to-noise ratio is low, as the model cannot distinguish between relevant features for parameter identification and spurious noise components.
+侧偏刚度参数的识别面临重大挑战，这是由于现实世界传感器数据中固有的测量噪声。传统方法如最小二乘估计虽然在理论上合理，但对测量噪声表现出显著的敏感性，导致在实际场景中估计精度下降。标准神经网络方法虽然能够从数据中学习复杂映射，但缺乏在嘈杂输入表示中选择性聚焦最具信息量特征的能力。当信噪比较低时，这种限制变得尤为明显，因为模型无法区分参数识别的相关特征和虚假噪声成分。
 
-To address these challenges, we propose an attention-enhanced neural network architecture that incorporates a self-attention mechanism to dynamically weight input features based on their relevance to the parameter identification task. The attention module learns to prioritize the most informative features while suppressing noise-contaminated or less relevant inputs, thereby providing a principled mechanism for feature selection that adapts to varying noise conditions. This approach represents a novel application of attention mechanisms to the domain of vehicle parameter identification, leveraging their proven ability to capture complex dependencies and selectively focus on salient information.
+为了应对这些挑战，我们提出了一种注意力增强神经网络架构，该架构融合了自注意力机制，根据输入特征与参数识别任务的相关性动态加权。注意力模块学习优先处理最具信息量的特征，同时抑制噪声污染或不太相关的输入，从而提供一种适应不同噪声条件的原则性特征选择机制。这种方法代表了注意力机制在车辆参数识别领域的新应用，利用其已被证实的捕捉复杂依赖关系和选择性聚焦显著信息的能力。
 
-We conduct extensive experiments to validate the effectiveness of our proposed approach using a two-degree-of-freedom bicycle model, which provides a well-established framework for studying vehicle lateral dynamics. Our evaluation spans multiple noise levels ranging from low (0.01) to high (0.1), enabling a comprehensive assessment of robustness across varying signal-to-noise ratios. We compare the attention-enhanced neural network against baseline methods including least squares estimation and standard neural networks, measuring identification error for both front and rear cornering stiffness parameters. Additionally, we analyze the learned attention weights to gain interpretability into the model's feature selection strategy and understand how it adapts to different noise conditions.
+我们使用二自由度自行车模型进行了大量实验来验证我们提出方法的有效性，该模型为研究车辆横向动力学提供了一个成熟的框架。我们的评估跨越了从低（0.01）到高（0.1）的多个噪声水平，能够全面评估不同信噪比下的鲁棒性。我们将注意力增强神经网络与包括最小二乘估计和标准神经网络在内的基线方法进行比较，测量前后轮侧偏刚度参数的识别误差。此外，我们分析学习到的注意力权重，以获得对模型特征选择策略的可解释性，并了解它如何适应不同的噪声条件。
 
-The key contributions of this work are as follows:
+本工作的主要贡献如下：
 \begin{itemize}
-    \item We propose an attention-enhanced neural network architecture for vehicle steering parameter identification that uses self-attention to dynamically weight input features based on their relevance to the identification task.
-    \item We demonstrate through extensive experiments that the attention mechanism provides substantial benefits at higher noise levels, achieving up to 20x lower identification error compared to baseline neural networks at noise level 0.05.
-    \item We show that the attention-enhanced model achieves perfect parameter identification (0.0\% error) at moderate noise levels (0.02), significantly outperforming both least squares estimation and standard neural networks.
-    \item We provide interpretability through analysis of learned attention weights, revealing how the model adapts its feature selection strategy across different noise conditions and which input features are most informative for parameter identification.
+    \item 我们提出了一种用于车辆转向参数识别的注意力增强神经网络架构，该架构使用自注意力机制根据输入特征与识别任务的相关性动态加权。
+    \item 我们通过大量实验证明，注意力机制在较高噪声水平下提供了显著优势，与基线神经网络相比，在噪声水平0.05下识别误差降低了20倍。
+    \item 我们表明，注意力增强模型在中等噪声水平（0.02）下实现了完美的参数识别（0.0\%误差），显著优于最小二乘估计和标准神经网络。
+    \item 我们通过分析学习到的注意力权重提供了可解释性，揭示了模型如何在不同噪声条件下调整其特征选择策略，以及哪些输入特征对参数识别最具信息量。
 \end{itemize}
 
-\section{Related work}
+\section{相关工作}
 \label{sec:related}
 
-Classical approaches to vehicle parameter identification have primarily relied on least squares estimation and its variants. Devos et al. \citep{Devos2024ALI} present a least-squares identification method specifically designed for vehicle cornering stiffness identification using common vehicle sensor data, demonstrating the effectiveness of regression-based approaches for this problem. Building on this foundation, Cai et al. \citep{Cai2025JointEO} propose a joint estimation framework that simultaneously identifies tire cornering stiffness and vehicle operating states for distributed drive electric vehicles, highlighting the importance of integrated parameter and state estimation. To address time-varying characteristics, Chen et al. \citep{Chen2024VehicleSE} integrate recursive least squares with a variable forgetting factor and an adaptive iterative extended Kalman filter for vehicle state estimation, providing improved robustness to changing operating conditions. These classical methods assume linear relationships and Gaussian noise distributions, making them sensitive to violations of these assumptions in practical scenarios. In contrast, our attention-enhanced approach does not require these assumptions and can handle non-Gaussian noise through learned feature weighting, providing greater flexibility in real-world applications.
+车辆参数识别的经典方法主要依赖于最小二乘估计及其变体。Devos等人\citep{Devos2024ALI}提出了一种专门设计用于使用常见车辆传感器数据进行车辆侧偏刚度识别的最小二乘识别方法，证明了基于回归方法对这个问题的有效性。在此基础上，Cai等人\citep{Cai2025JointEO}提出了一种联合估计框架，同时识别分布式驱动电动车辆的轮胎侧偏刚度和车辆运行状态，强调了参数和状态综合估计的重要性。为了解决时变特性，Chen等人\citep{Chen2024VehicleSE}将具有可变遗忘因子的递归最小二乘与自适应迭代扩展卡尔曼滤波器集成用于车辆状态估计，提供了对变化运行条件的改进鲁棒性。这些经典方法假设线性关系和高斯噪声分布，使它们对实际场景中这些假设的违反很敏感。相比之下，我们的注意力增强方法不需要这些假设，可以通过学习的特征加权处理非高斯噪声，在实际应用中提供更大的灵活性。
 
-Neural network approaches have shown significant promise in vehicle system identification by learning complex nonlinear mappings directly from data. Hermansdorfer et al. \citep{Hermansdorfer2020EndtoEnd} propose an end-to-end neural network for vehicle dynamics modeling, demonstrating that data-driven models can outperform traditional physics-based approaches in accuracy without the need for explicit parameter identification. Similarly, Song et al. \citep{Song2025DataDriven} utilize neural networks for system identification and prediction in driver assistance control, showcasing the ability of these models to capture dynamic behaviors from operational data. While these methods offer powerful representation capabilities, standard neural network architectures typically treat all input features with uniform importance. This lack of feature discrimination can be suboptimal in noisy environments, as the model cannot selectively prioritize informative measurements or suppress noise-contaminated features. Our attention-enhanced architecture addresses this limitation by introducing a dynamic feature weighting mechanism that adapts to the relevance and noise characteristics of each input.
+神经网络方法通过直接从数据中学习复杂的非线性映射，在车辆系统识别方面显示出巨大潜力。Hermansdorfer等人\citep{Hermansdorfer2020EndtoEnd}提出了一种用于车辆动力学建模的端到端神经网络，证明了数据驱动模型在准确性上可以优于传统的基于物理的方法，而无需显式的参数识别。类似地，Song等人\citep{Song2025DataDriven}利用神经网络进行驾驶辅助控制中的系统识别和预测，展示了这些模型从运行数据中捕获动态行为的能力。虽然这些方法提供了强大的表示能力，但标准神经网络架构通常对所有输入特征赋予均等的重要性。这种缺乏特征区分的情况在噪声环境中可能是次优的，因为模型无法选择性地优先处理信息丰富的测量值或抑制噪声污染的特征。我们的注意力增强架构通过引入动态特征加权机制来解决这一限制，该机制能够适应每个输入的相关性和噪声特性。
 
-Attention mechanisms have revolutionized deep learning by enabling models to dynamically focus on the most relevant parts of their input. Vaswani et al. \citep{Vaswani2017AttentionIA} introduced the transformer architecture, which relies entirely on self-attention to process sequential data, achieving state-of-the-art results in natural language processing. Following this breakthrough, attention mechanisms have been widely adopted in computer vision and time-series forecasting. Dosovitskiy et al. \citep{Dosovitskiy2020AnII} demonstrated the effectiveness of pure transformer architectures for image recognition, showing that self-attention can serve as a powerful alternative to convolutional neural networks in vision tasks. These applications demonstrate the ability of attention mechanisms to capture long-range dependencies and complex feature interactions. While attention has been successfully applied to various sequence modeling tasks, its application to vehicle parameter identification remains largely unexplored. Our work leverages the selective focus capabilities of self-attention to address the challenge of noisy feature selection in vehicle dynamics estimation.
+注意力机制通过使模型能够动态聚焦于输入中最相关的部分，彻底改变了深度学习。Vaswani等人\citep{Vaswani2017AttentionIA}引入了Transformer架构，该架构完全依赖自注意力来处理序列数据，在自然语言处理中取得了最先进的结果。在这一突破之后，注意力机制在计算机视觉和时间序列预测中得到了广泛应用。Dosovitskiy等人\citep{Dosovitskiy2020AnII}证明了纯Transformer架构在图像识别中的有效性，表明自注意力可以作为视觉任务中卷积神经网络的强大替代方案。这些应用展示了注意力机制捕获长程依赖关系和复杂特征交互的能力。虽然注意力已成功应用于各种序列建模任务，但其在车辆参数识别中的应用仍然基本未被探索。我们的工作利用自注意力的选择性聚焦能力来解决车辆动力学估计中噪声特征选择的挑战。
 
-Physics-informed neural networks have emerged as a powerful approach for incorporating domain knowledge into data-driven models. Raissi et al. \citep{Raissi2019PhysicsinformedNN} introduced a framework that embeds physical constraints directly into the neural network loss function, enabling models to learn representations that respect underlying physical laws. In the context of vehicle dynamics, physics-informed approaches can enforce constraints such as the bicycle model equations or conservation laws, ensuring that parameter estimates remain physically plausible. While these methods provide strong inductive bias through physical constraints, they typically treat all input features uniformly. Our attention-enhanced approach complements physics-informed techniques by focusing on feature selection and noise robustness rather than physical consistency. Combining attention mechanisms with physics-informed constraints presents an exciting direction for future work, potentially leveraging both data-driven feature prioritization and domain knowledge to improve parameter identification accuracy.
+物理信息神经网络已成为将领域知识融入数据驱动模型的强大方法。Raissi等人\citep{Raissi2019PhysicsinformedNN}引入了一个框架，将物理约束直接嵌入到神经网络损失函数中，使模型能够学习尊重基本物理定律的表示。在车辆动力学的背景下，物理信息方法可以强制执行诸如自行车模型方程或守恒定律等约束，确保参数估计保持物理上的合理性。虽然这些方法通过物理约束提供了强大的归纳偏差，但它们通常对所有输入特征统一处理。我们的注意力增强方法通过关注特征选择和噪声鲁棒性而不是物理一致性，来补充物理信息技术。将注意力机制与物理信息约束相结合是未来工作的一个令人兴奋的方向，可能会利用数据驱动的特征优先级排序和领域知识来提高参数识别精度。
 
-\subsection{Robust parameter estimation under noise}
+\subsection{噪声下的鲁棒参数估计}
 \label{sec:robust_estimation}
 
-Robust parameter estimation techniques have been developed to address the challenges posed by noisy measurements and outliers in parameter identification tasks. Classical robust statistics provides several frameworks for handling non-Gaussian noise and contaminated data. Bellec \citep{Bellec2023ErrorEA} investigates unregularized robust M-estimators for linear models under heavy-tailed noise, demonstrating how these estimators can provide consistent error estimates and adaptive tuning for robust parameter estimation. Building on robust regression principles, Zhang et al. \citep{Zhang2025ARF} propose a fuzzy rule-based regression framework that incorporates a generalized piecewise smooth Huber function to suppress the influence of anomalous observations while maintaining numerical stability.
+鲁棒参数估计技术已被开发出来以应对参数识别任务中噪声测量和异常值带来的挑战。经典鲁棒统计学提供了几个处理非高斯噪声和污染数据的框架。Bellec\citep{Bellec2023ErrorEA}研究了在重尾噪声下线性模型的无正则化鲁棒M估计器，展示了这些估计器如何提供一致的误差估计和鲁棒参数估计的自适应调整。基于鲁棒回归原理，Zhang等人\citep{Zhang2025ARF}提出了一个基于模糊规则的回归框架，该框架结合了广义分段光滑Huber函数来抑制异常观测的影响，同时保持数值稳定性。
 
-In the context of dynamical systems, specialized techniques have been developed to handle noise in parameter estimation. Castelan-Perez et al. \citep{CastelanPerez2025FilteringAF} introduce a robust algebraic parameter estimation methodology that explicitly incorporates signal filtering dynamics within the estimator structure, enhancing noise attenuation through fractional differentiation in the frequency domain. These methods typically rely on statistical techniques or domain-specific filtering approaches to achieve robustness. In contrast, our attention-enhanced approach provides a learned, data-driven mechanism for noise robustness that adapts feature weighting based on the specific characteristics of the input data, rather than relying on predefined loss functions or filter designs. While traditional robust methods often require careful tuning of hyperparameters and assumptions about noise distributions, our attention mechanism learns to prioritize informative features directly from data, offering greater flexibility in handling diverse noise conditions.
+在动力系统的背景下，已经开发出专门的技术来处理参数估计中的噪声。Castelan-Perez等人\citep{CastelanPerez2025FilteringAF}引入了一种鲁棒代数参数估计方法，该方法在估计器结构中明确地结合了信号滤波动力学，通过频域中的分数阶微分增强了噪声衰减。这些方法通常依赖统计技术或领域特定的滤波方法来实现鲁棒性。相比之下，我们的注意力增强方法提供了一种学习的、数据驱动的噪声鲁棒机制，该机制根据输入数据的具体特征调整特征加权，而不是依赖于预定义的损失函数或滤波器设计。虽然传统鲁棒方法通常需要仔细调整超参数和关于噪声分布的假设，但我们的注意力机制直接从数据中学习优先处理信息特征，在处理多样化的噪声条件时提供了更大的灵活性。
 
-\section{Background}
+\section{背景}
 \label{sec:background}
 
-\subsection{Vehicle dynamics model}
+\subsection{车辆动力学模型}
 \label{sec:vehicle_model}
 
-The two-degree-of-freedom bicycle model is widely used to describe vehicle lateral dynamics \citep{rajamani2012vehicle}. The governing equations are:
+二自由度自行车模型被广泛用于描述车辆横向动力学\citep{rajamani2012vehicle}。控制方程为：
 
 \begin{equation}
 m v (\dot{\beta} + r) = F_{yf} + F_{yr}
@@ -95,188 +100,188 @@ m v (\dot{\beta} + r) = F_{yf} + F_{yr}
 I_z \dot{r} = L_f F_{yf} - L_r F_{yr}
 \end{equation}
 
-where $\beta$ is the vehicle sideslip angle, $r$ is the yaw rate, $m$ is the vehicle mass, $v$ is the longitudinal velocity, $I_z$ is the yaw moment of inertia, and $L_f$, $L_r$ are the distances from the center of gravity to the front and rear axles, respectively.
+其中$\beta$是车辆侧偏角，$r$是横摆角速度，$m$是车辆质量，$v$是纵向速度，$I_z$是横摆转动惯量，$L_f$和$L_r$分别是从重心到前后轴的距离。
 
-The lateral tire forces are modeled using a linear relationship with tire slip angles:
+轮胎侧向力使用与轮胎滑移角的线性关系建模：
 \begin{equation}
 F_{yf} = C_f \alpha_f, \quad F_{yr} = C_r \alpha_r
 \end{equation}
 
-where $C_f$ and $C_r$ are the front and rear cornering stiffness coefficients, which are the key parameters to be identified in this work.
+其中$C_f$和$C_r$是前后轮侧偏刚度系数，这是本工作中需要识别的关键参数。
 
-\subsection{Parameter identification methods}
+\subsection{参数识别方法}
 \label{sec:param_id_methods}
 
-Classical approaches to vehicle parameter identification rely on regression techniques that fit model parameters to measured data. Least squares estimation is a widely used method that minimizes the sum of squared residuals between model predictions and measurements \citep{rajamani2012vehicle}. For the bicycle model, this involves constructing a linear system where the unknown cornering stiffness parameters appear as coefficients, and solving for these coefficients using measured vehicle states and inputs. While least squares provides a computationally efficient solution with well-understood theoretical properties, it assumes that measurement errors are independent and identically distributed with zero mean and constant variance. In practice, vehicle sensor data often violates these assumptions due to correlated noise, outliers, and varying signal-to-noise ratios across different operating conditions.
+车辆参数识别的经典方法依赖于将模型参数拟合到测量数据的回归技术。最小二乘估计是一种广泛使用的方法，它最小化模型预测和测量值之间的残差平方和\citep{rajamani2012vehicle}。对于自行车模型，这涉及构建一个线性系统，其中未知的侧偏刚度参数作为系数出现，并使用测量的车辆状态和输入来求解这些系数。虽然最小二乘法提供了具有明确理论性质的计算高效解决方案，但它假设测量误差是独立且同分布的，具有零均值和恒定方差。在实践中，由于相关噪声、异常值以及不同运行条件下信噪比的变化，车辆传感器数据经常违反这些假设。
 
-Neural networks have emerged as powerful alternatives to classical regression methods for parameter identification tasks. By learning complex nonlinear mappings from input features to target parameters, neural networks can capture relationships that are difficult to model analytically. Feedforward neural networks with multiple hidden layers have been successfully applied to various system identification problems, offering the ability to approximate arbitrary continuous functions given sufficient data and network capacity \citep{Narendra1990IdentificationAC}. However, standard neural network architectures treat all input features equally, applying the same transformation weights regardless of feature relevance or noise contamination. This uniform treatment can be suboptimal when input features have varying levels of informativeness or when measurement noise affects different features to different degrees.
+神经网络已成为参数识别任务中经典回归方法的强大替代方案。通过从输入特征到目标参数学习复杂的非线性映射，神经网络可以捕获难以解析建模的关系。具有多个隐藏层的前馈神经网络已成功应用于各种系统识别问题，在给定足够的数据和网络容量的情况下，提供了近似任意连续函数的能力\citep{Narendra1990IdentificationAC}。然而，标准神经网络架构对所有输入特征一视同仁，无论特征相关性或噪声污染如何，都应用相同的转换权重。当输入特征具有不同的信息量级别，或者当测量噪声以不同程度影响不同特征时，这种统一处理可能是次优的。
 
-\subsection{Attention mechanisms}
+\subsection{注意力机制}
 \label{sec:attention}
 
-Attention mechanisms have revolutionized deep learning by enabling models to dynamically focus on the most relevant parts of their input. Self-attention, in particular, computes attention weights that determine how much each element in a sequence should contribute to the representation of other elements. The core idea is to learn a set of weights that reflect the importance or relevance of different input features or positions, allowing the model to selectively attend to informative signals while suppressing irrelevant or noisy information. In the context of feature-level attention, each input feature is assigned a weight based on its contribution to the task at hand, and these weighted features are then processed by subsequent layers of the network. This mechanism provides a principled way to perform feature selection within the neural network architecture, adapting the model's focus based on the specific input and task requirements.
+注意力机制通过使模型能够动态聚焦于输入中最相关的部分，彻底改变了深度学习。特别是自注意力，它计算注意力权重，确定序列中的每个元素应该对其他元素的表示贡献多少。核心思想是学习一组权重，这些权重反映了不同输入特征或位置的重要性或相关性，允许模型选择性地关注信息信号，同时抑制不相关或噪声信息。在特征级注意力的背景下，每个输入特征根据其对当前任务的贡献被分配一个权重，然后这些加权特征由网络的后续层处理。这种机制提供了一种在神经网络架构内执行特征选择的原则性方法，根据特定的输入和任务要求调整模型的聚焦点。
 
-Formally, given an input vector $\mathbf{x} \in \mathbb{R}^d$, a self-attention mechanism computes attention weights $\mathbf{a} \in \mathbb{R}^d$ as:
+形式上，给定一个输入向量$\mathbf{x} \in \mathbb{R}^d$，自注意力机制计算注意力权重$\mathbf{a} \in \mathbb{R}^d$为：
 \begin{equation}
 \mathbf{a} = \text{softmax}(\mathbf{W}_a \mathbf{x} + \mathbf{b}_a)
 \end{equation}
-where $\mathbf{W}_a \in \mathbb{R}^{d \times d}$ and $\mathbf{b}_a \in \mathbb{R}^d$ are learnable parameters. The attention weights are then applied to the input to produce a weighted representation:
+其中$\mathbf{W}_a \in \mathbb{R}^{d \times d}$和$\mathbf{b}_a \in \mathbb{R}^d$是可学习参数。然后将注意力权重应用于输入以产生加权表示：
 \begin{equation}
 \mathbf{x}' = \mathbf{x} \odot \mathbf{a}
 \end{equation}
-where $\odot$ denotes element-wise multiplication. The softmax function ensures that attention weights are non-negative and sum to one, providing a normalized importance distribution across features. This formulation allows the model to learn which features are most informative for the task and dynamically adjust their contributions during training.
+其中$\odot$表示逐元素乘法。softmax函数确保注意力权重是非负的并且总和为一，在特征之间提供归一化的重要性分布。这种公式允许模型学习哪些特征对任务最具信息量，并在训练期间动态调整它们的贡献。
 
-\subsection{Problem setting}
+\subsection{问题设定}
 \label{sec:problem_setting}
 
-We consider the problem of identifying front and rear cornering stiffness parameters $C_f$ and $C_r$ from noisy measurements of vehicle dynamics. Let $\mathcal{D} = \{(\mathbf{x}_i, \mathbf{y}_i)\}_{i=1}^N$ denote a dataset of $N$ samples, where each input $\mathbf{x}_i \in \mathbb{R}^4$ consists of measured vehicle states and inputs:
+我们考虑从车辆动力学的噪声测量中识别前后轮侧偏刚度参数$C_f$和$C_r$的问题。设$\mathcal{D} = \{(\mathbf{x}_i, \mathbf{y}_i)\}_{i=1}^N$表示包含$N$个样本的数据集，其中每个输入$\mathbf{x}_i \in \mathbb{R}^4$由测量的车辆状态和输入组成：
 \begin{equation}
 \mathbf{x}_i = [\delta_i, v_i, \beta_i, r_i]^T
 \end{equation}
-with $\delta_i$ representing the steering angle, $v_i$ the longitudinal velocity, $\beta_i$ the sideslip angle, and $r_i$ the yaw rate. The measurements are corrupted by additive Gaussian noise:
+其中$\delta_i$表示转向角，$v_i$表示纵向速度，$\beta_i$表示侧偏角，$r_i$表示横摆角速度。测量值受到加性高斯噪声的污染：
 \begin{equation}
 \tilde{\beta}_i = \beta_i + \epsilon_\beta, \quad \tilde{r}_i = r_i + \epsilon_r
 \end{equation}
-where $\epsilon_\beta \sim \mathcal{N}(0, \sigma_\beta^2)$ and $\epsilon_r \sim \mathcal{N}(0, \sigma_r^2)$ represent measurement noise with variance proportional to a noise level parameter $\eta$.
+其中$\epsilon_\beta \sim \mathcal{N}(0, \sigma_\beta^2)$和$\epsilon_r \sim \mathcal{N}(0, \sigma_r^2)$表示方差与噪声水平参数$\eta$成比例的测量噪声。
 
-The objective is to learn a function $f: \mathbb{R}^4 \rightarrow \mathbb{R}^2$ that maps noisy measurements to accurate estimates of the cornering stiffness parameters:
+目标是学习一个函数$f: \mathbb{R}^4 \rightarrow \mathbb{R}^2$，将噪声测量映射到侧偏刚度参数的准确估计：
 \begin{equation}
 [\hat{C}_f, \hat{C}_r]^T = f(\mathbf{x})
 \end{equation}
-The quality of the estimate is measured by the relative error:
+估计的质量通过相对误差来测量：
 \begin{equation}
 \mathcal{L} = \frac{1}{2}\left(\frac{|\hat{C}_f - C_f^*|}{C_f^*} + \frac{|\hat{C}_r - C_r^*|}{C_r^*}\right) \times 100\%
 \end{equation}
-where $C_f^*$ and $C_r^*$ denote the true parameter values. The challenge is to learn $f$ such that the identification error remains low across varying noise levels $\eta \in \{0.01, 0.02, 0.05, 0.1\}$, with the additional requirement that the learned function should provide interpretable insights into which input features are most informative for parameter identification.
+其中$C_f^*$和$C_r^*$表示真实参数值。挑战是学习$f$，使得识别误差在不同噪声水平$\eta \in \{0.01, 0.02, 0.05, 0.1\}$下保持较低，并且学习到的函数应该能够提供关于哪些输入特征对参数识别最具信息量的可解释洞察。
 
-\section{Method}
+\section{方法}
 \label{sec:method}
 
-We propose an attention-enhanced neural network architecture for vehicle steering parameter identification that builds upon the problem setting introduced in Section~\ref{sec:problem_setting}. The core idea is to augment a standard feedforward neural network with a self-attention mechanism that learns to dynamically weight the four input features ($\delta$, $v$, $\beta$, $r$) based on their relevance to identifying the cornering stiffness parameters $C_f$ and $C_r$. This approach addresses the limitation of standard neural networks, which treat all input features equally regardless of their informativeness or noise contamination. By learning to prioritize the most informative features while suppressing noise-contaminated inputs, the attention mechanism provides a principled mechanism for robust parameter estimation under varying noise conditions.
+我们提出了一种用于车辆转向参数识别的注意力增强神经网络架构，该架构建立在第~\ref{sec:problem_setting}节介绍的问题设定之上。核心思想是用自注意力机制来增强标准前馈神经网络，该机制学习根据四个输入特征（$\delta$、$v$、$\beta$、$r$）与识别侧偏刚度参数$C_f$和$C_r$的相关性来动态加权。这种方法解决了标准神经网络的局限性，标准神经网络对所有输入特征一视同仁，无论它们的信息量或噪声污染如何。通过学习优先处理最具信息量的特征，同时抑制噪声污染的输入，注意力机制为在不同噪声条件下进行鲁棒参数估计提供了一种原则性机制。
 
-The baseline neural network follows a standard feedforward architecture with multiple hidden layers. Given an input vector $\mathbf{x} = [\delta, v, \beta, r]^T \in \mathbb{R}^4$, the network applies a series of linear transformations followed by non-linear activation functions. For hidden layer $l$, the transformation is:
+基线神经网络遵循具有多个隐藏层的标准前馈架构。给定输入向量$\mathbf{x} = [\delta, v, \beta, r]^T \in \mathbb{R}^4$，网络应用一系列线性变换，然后是非线性激活函数。对于隐藏层$l$，变换为：
 \begin{equation}
 \mathbf{h}^{(l)} = \sigma(\mathbf{W}^{(l)} \mathbf{h}^{(l-1)} + \mathbf{b}^{(l)})
 \end{equation}
-where $\mathbf{W}^{(l)}$ and $\mathbf{b}^{(l)}$ are learnable weight matrices and bias vectors, $\sigma$ is the activation function (ReLU in our implementation), and $\mathbf{h}^{(0)} = \mathbf{x}$. The final layer produces the parameter estimates:
+其中$\mathbf{W}^{(l)}$和$\mathbf{b}^{(l)}$是可学习的权重矩阵和偏置向量，$\sigma$是激活函数（在我们的实现中为ReLU），$\mathbf{h}^{(0)} = \mathbf{x}$。最后一层产生参数估计：
 \begin{equation}
 [\hat{C}_f, \hat{C}_r]^T = \text{Softplus}(\mathbf{W}^{(L)} \mathbf{h}^{(L-1)} + \mathbf{b}^{(L)}) \cdot s
 \end{equation}
-where $s = 10000$ is a scaling factor to account for the magnitude of the cornering stiffness parameters, and the Softplus activation ensures positive outputs. The network is trained using mean squared error loss between predicted and true parameter values.
+其中$s = 10000$是一个缩放因子，用于考虑侧偏刚度参数的量级，Softplus激活确保正输出。网络使用预测值和真实参数值之间的均方误差损失进行训练。
 
-The attention-enhanced neural network augments the baseline architecture with a feature-level self-attention mechanism. Before the input features are processed by the hidden layers, they are first weighted by learned attention coefficients. The attention mechanism computes attention weights $\mathbf{a} \in \mathbb{R}^4$ as:
+注意力增强神经网络通过特征级自注意力机制增强基线架构。在输入特征由隐藏层处理之前，它们首先由学习到的注意力系数加权。注意力机制计算注意力权重$\mathbf{a} \in \mathbb{R}^4$为：
 \begin{equation}
 \mathbf{a} = \text{softmax}(\mathbf{W}_a \mathbf{x} + \mathbf{b}_a)
 \end{equation}
-where $\mathbf{W}_a \in \mathbb{R}^{4 \times 4}$ and $\mathbf{b}_a \in \mathbb{R}^4$ are learnable parameters. The softmax function ensures that attention weights are non-negative and sum to one, providing a normalized importance distribution across the four input features. The weighted input representation is then computed as:
+其中$\mathbf{W}_a \in \mathbb{R}^{4 \times 4}$和$\mathbf{b}_a \in \mathbb{R}^4$是可学习参数。softmax函数确保注意力权重是非负的并且总和为一，在四个输入特征之间提供归一化的重要性分布。然后计算加权输入表示为：
 \begin{equation}
 \mathbf{x}' = \mathbf{x} \odot \mathbf{a}
 \end{equation}
-where $\odot$ denotes element-wise multiplication. This weighted representation $\mathbf{x}'$ is then processed by the same feedforward architecture as the baseline network, producing parameter estimates using the same output layer formulation.
+其中$\odot$表示逐元素乘法。然后，这个加权表示$\mathbf{x}'$由与基线网络相同的前馈架构处理，使用相同的输出层公式产生参数估计。
 
-Both the baseline and attention-enhanced neural networks are trained using supervised learning with the same training procedure. Given a dataset $\mathcal{D} = \{(\mathbf{x}_i, \mathbf{y}_i)\}_{i=1}^N$ where $\mathbf{y}_i = [C_f^*, C_r^*]^T$ contains the true parameter values, the objective is to minimize the mean squared error between predictions and ground truth:
+基线和注意力增强神经网络都使用相同的训练过程通过监督学习进行训练。给定数据集$\mathcal{D} = \{(\mathbf{x}_i, \mathbf{y}_i)\}_{i=1}^N$，其中$\mathbf{y}_i = [C_f^*, C_r^*]^T$包含真实参数值，目标是最小化预测和真实值之间的均方误差：
 \begin{equation}
 \mathcal{L}_{\text{MSE}} = \frac{1}{N} \sum_{i=1}^N \|f(\mathbf{x}_i) - \mathbf{y}_i\|^2
 \end{equation}
-where $f$ denotes the neural network function (either baseline or attention-enhanced). The networks are optimized using the Adam optimizer with learning rate $\alpha = 0.001$. Training proceeds for a fixed number of epochs with early stopping based on validation loss to prevent overfitting. The attention-enhanced network learns the attention weights $\mathbf{W}_a$ and $\mathbf{b}_a$ jointly with the network parameters through backpropagation, allowing the attention mechanism to adapt to the specific noise characteristics present in the training data.
+其中$f$表示神经网络函数（基线或注意力增强）。使用学习率$\alpha = 0.001$的Adam优化器优化网络。训练进行固定数量的轮次，并根据验证损失进行早停以防止过拟合。注意力增强网络通过反向传播与网络参数共同学习注意力权重$\mathbf{W}_a$和$\mathbf{b}_a$，使注意力机制能够适应训练数据中存在的特定噪声特性。
 
-\section{Experimental setup}
+\section{实验设置}
 \label{sec:experimental}
 
-We generate synthetic vehicle dynamics data using the two-degree-of-freedom bicycle model described in Section~\ref{sec:vehicle_model}. The true vehicle parameters are set as follows: mass $m = 1500$ kg, yaw moment of inertia $I_z = 2500$ kg$\cdot$m$^2$, front axle distance $L_f = 1.2$ m, rear axle distance $L_r = 1.4$ m, front cornering stiffness $C_f^* = 80000$ N/rad, and rear cornering stiffness $C_r^* = 90000$ N/rad. For each sample, we randomly sample vehicle speed from a uniform distribution $v \sim \mathcal{U}(10, 30)$ m/s, steering amplitude from $\delta_{amp} \sim \mathcal{U}(0.01, 0.05)$ rad, and steering frequency from $f \sim \mathcal{U}(0.5, 2.0)$ Hz. The steering input follows a sinusoidal pattern $\delta(t) = \delta_{amp} \sin(2\pi f t)$, and the vehicle dynamics are simulated using numerical integration with a sampling rate of 100 Hz ($dt = 0.01$ s). We generate $N = 5000$ samples for each experiment, with an 80/20 train/validation split.
+我们使用第~\ref{sec:vehicle_model}节中描述的二自由度自行车模型生成合成车辆动力学数据。真实车辆参数设置如下：质量$m = 1500$ kg，横摆转动惯量$I_z = 2500$ kg$\cdot$m$^2$，前轴距离$L_f = 1.2$ m，后轴距离$L_r = 1.4$ m，前轮侧偏刚度$C_f^* = 80000$ N/rad，后轮侧偏刚度$C_r^* = 90000$ N/rad。对于每个样本，我们从均匀分布中随机采样车辆速度$v \sim \mathcal{U}(10, 30)$ m/s，转向幅度$\delta_{amp} \sim \mathcal{U}(0.01, 0.05)$ rad，转向频率$f \sim \mathcal{U}(0.5, 2.0)$ Hz。转向输入遵循正弦模式$\delta(t) = \delta_{amp} \sin(2\pi f t)$，车辆动力学使用采样率为100 Hz（$dt = 0.01$ s）的数值积分进行模拟。我们为每个实验生成$N = 5000$个样本，按80/20划分训练/验证集。
 
-To simulate real-world sensor noise, we add zero-mean Gaussian noise to the measured vehicle states. The noisy measurements are computed as $\tilde{\beta} = \beta + \epsilon_\beta$ and $\tilde{r} = r + \epsilon_r$, where $\epsilon_\beta \sim \mathcal{N}(0, \sigma_\beta^2)$ and $\epsilon_r \sim \mathcal{N}(0, \sigma_r^2)$. The noise standard deviation is proportional to the standard deviation of the clean signal: $\sigma_\beta = \eta \cdot \text{std}(\beta)$ and $\sigma_r = \eta \cdot \text{std}(r)$, where $\eta$ is the noise level parameter. We evaluate all methods across four noise levels: $\eta \in \{0.01, 0.02, 0.05, 0.1\}$, representing low to high measurement noise conditions.
+为了模拟现实世界的传感器噪声，我们向测量的车辆状态添加零均值高斯噪声。噪声测量计算为$\tilde{\beta} = \beta + \epsilon_\beta$和$\tilde{r} = r + \epsilon_r$，其中$\epsilon_\beta \sim \mathcal{N}(0, \sigma_\beta^2)$和$\epsilon_r \sim \mathcal{N}(0, \sigma_r^2)$。噪声标准差与干净信号的标准差成比例：$\sigma_\beta = \eta \cdot \text{std}(\beta)$和$\sigma_r = \eta \cdot \text{std}(r)$，其中$\eta$是噪声水平参数。我们在四个噪声水平上评估所有方法：$\eta \in \{0.01, 0.02, 0.05, 0.1\}$，代表从低到高的测量噪声条件。
 
-We evaluate parameter identification accuracy using the relative error metric, which measures the percentage deviation between predicted and true parameter values. For front cornering stiffness, the error is computed as $E_{C_f} = \frac{|\hat{C}_f - C_f^*|}{C_f^*} \times 100\%$, and similarly for rear cornering stiffness as $E_{C_r} = \frac{|\hat{C}_r - C_r^*|}{C_r^*} \times 100\%$. The mean identification error is reported as $E_{\text{mean}} = \frac{1}{2}(E_{C_f} + E_{C_r})$. Lower error values indicate better parameter identification performance.
+我们使用相对误差指标评估参数识别精度，该指标测量预测值和真实参数值之间的百分比偏差。对于前轮侧偏刚度，误差计算为$E_{C_f} = \frac{|\hat{C}_f - C_f^*|}{C_f^*} \times 100\%$，类似地，后轮侧偏刚度计算为$E_{C_r} = \frac{|\hat{C}_r - C_r^*|}{C_r^*} \times 100\%$。平均识别误差报告为$E_{\text{mean}} = \frac{1}{2}(E_{C_f} + E_{C_r})$。较低的误差值表示更好的参数识别性能。
 
-We compare our attention-enhanced neural network against two baseline methods. The first baseline is least squares estimation, which constructs a linear system from the bicycle model equations and solves for the cornering stiffness parameters using the pseudo-inverse. The second baseline is a standard feedforward neural network with two hidden layers of 64 neurons each, using ReLU activation functions. The network takes the four input features ($\delta$, $v$, $\beta$, $r$) and outputs the two cornering stiffness parameters. The output layer uses a Softplus activation to ensure positive predictions, and the outputs are scaled by a factor of $10000$ to match the magnitude of the true parameters.
+我们将注意力增强神经网络与两种基线方法进行比较。第一种基线是最小二乘估计，它从自行车模型方程构建线性系统，并使用伪逆求解侧偏刚度参数。第二种基线是标准前馈神经网络，具有两个各64个神经元的隐藏层，使用ReLU激活函数。网络接收四个输入特征（$\delta$、$v$、$\beta$、$r$）并输出两个侧偏刚度参数。输出层使用Softplus激活确保正预测，输出按$10000$的因子缩放以匹配真实参数的量级。
 
-All networks are trained using the Adam optimizer with learning rate $\alpha = 0.001$, batch size of 64, and mean squared error loss between predictions and true parameter values. Training proceeds for 100 epochs with early stopping based on validation loss to prevent overfitting. The random seed is fixed to 42 for reproducibility.
+所有网络都使用学习率$\alpha = 0.001$、批大小为64的Adam优化器进行训练，损失函数为预测值和真实参数值之间的均方误差。训练进行100个轮次，并根据验证损失进行早停以防止过拟合。随机种子固定为42以确保可重复性。
 
-\section{Results}
+\section{结果}
 \label{sec:results}
 
-We present the results of our experiments comparing the attention-enhanced neural network against baseline methods (least squares estimation and standard neural network) across four noise levels: $\eta \in \{0.01, 0.02, 0.05, 0.1\}$. The experiments demonstrate that the attention mechanism provides substantial benefits at higher noise levels, while introducing a performance trade-off at low noise levels where the baseline neural network performs slightly better. All methods were trained with identical hyperparameters: two hidden layers of 64 neurons each, ReLU activation, Adam optimizer with learning rate 0.001, batch size of 64, and 100 training epochs with early stopping based on validation loss.
+我们展示了在四个噪声水平$\eta \in \{0.01, 0.02, 0.05, 0.1\}$下将注意力增强神经网络与基线方法（最小二乘估计和标准神经网络）进行比较的实验结果。实验表明，注意力机制在较高噪声水平下提供了显著优势，同时在低噪声水平下引入了性能权衡，在低噪声情况下基线神经网络表现略好。所有方法都使用相同的超参数进行训练：两个各64个神经元的隐藏层，ReLU激活，学习率为0.001的Adam优化器，批大小为64，以及基于验证损失的早停进行100个训练轮次。
 
-Table~\ref{tab:results} summarizes the parameter identification errors for all methods across the four noise levels. At the lowest noise level ($\eta = 0.01$), the standard neural network achieves the best performance with a mean error of 0.0014\%, while the attention-enhanced network achieves 0.0264\% error. This represents a trade-off where the added complexity of the attention mechanism is unnecessary when measurement noise is minimal. However, at moderate noise level ($\eta = 0.02$), the attention-enhanced network achieves perfect parameter identification (0.0\% error), significantly outperforming both the standard neural network (0.0209\% error) and least squares estimation (1.020\% mean error).
+表~\ref{tab:results}总结了所有方法在四个噪声水平下的参数识别误差。在最低噪声水平（$\eta = 0.01$）下，标准神经网络获得最佳性能，平均误差为0.0014\%，而注意力增强网络的误差为0.0264\%。这代表了一种权衡，当测量噪声最小时，注意力机制的额外复杂性是不必要的。然而，在中等噪声水平（$\eta = 0.02$）下，注意力增强网络实现了完美的参数识别（0.0\%误差），显著优于标准神经网络（0.0209\%误差）和最小二乘估计（1.020\%平均误差）。
 
-At higher noise levels, the attention mechanism provides increasingly substantial benefits. At $\eta = 0.05$, the attention-enhanced network achieves a mean error of 0.00225\%, representing approximately 20x improvement over the standard neural network (0.0439\% error). The least squares method performs poorly with 0.763\% mean error. Interestingly, at the highest noise level ($\eta = 0.1$), the attention-enhanced network maintains the same performance (0.00225\% error), while the standard neural network's performance remains degraded at 0.0439\% error. This suggests that the attention mechanism reaches a stable performance plateau where it effectively filters out noise regardless of the exact noise level within this range.
+在较高噪声水平下，注意力机制提供了越来越显著的优势。在$\eta = 0.05$时，注意力增强网络实现了0.00225\%的平均误差，相对于标准神经网络（0.0439\%误差）提升了约20倍。最小二乘法表现较差，平均误差为0.763\%。有趣的是，在最高噪声水平（$\eta = 0.1$）下，注意力增强网络保持相同的性能（0.00225\%误差），而标准神经网络的性能仍然退化，误差为0.0439\%。这表明注意力机制达到了一个稳定的性能平台，在该范围内无论确切的噪声水平如何，它都能有效地过滤噪声。
 
 \begin{table}[t]
 \small\sf\centering
-\caption{Parameter identification errors (\%) across different noise levels. Lower values indicate better performance.}
+\caption{不同噪声水平下的参数识别误差(\%)。较低的值表示更好的性能。}
 \label{tab:results}
 \begin{tabular}{lcccc}
 \toprule
-\textbf{Method} & $\eta = 0.01$ & $\eta = 0.02$ & $\eta = 0.05$ & $\eta = 0.1$ \\
+\textbf{方法} & $\eta = 0.01$ & $\eta = 0.02$ & $\eta = 0.05$ & $\eta = 0.1$ \\
 \midrule
-Least Squares & 1.080 & 1.020 & 0.763 & 0.763 \\
-Standard NN & \textbf{0.0014} & 0.0209 & 0.0439 & 0.0439 \\
-Attention NN & 0.0264 & \textbf{0.0} & \textbf{0.00225} & \textbf{0.00225} \\
+最小二乘 & 1.080 & 1.020 & 0.763 & 0.763 \\
+标准神经网络 & \textbf{0.0014} & 0.0209 & 0.0439 & 0.0439 \\
+注意力神经网络 & 0.0264 & \textbf{0.0} & \textbf{0.00225} & \textbf{0.00225} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Figure~\ref{fig:noise_sensitivity} illustrates how the mean parameter identification error varies with measurement noise level for each method. The standard neural network exhibits a clear degradation trend, with error increasing from 0.0014\% at $\eta = 0.01$ to 0.0439\% at $\eta = 0.05$. In contrast, the attention-enhanced network shows a non-monotonic pattern: it performs slightly worse than the baseline at $\eta = 0.01$, achieves perfect identification at $\eta = 0.02$, and maintains excellent performance (0.00225\% error) at higher noise levels. This behavior suggests that the attention mechanism learns to prioritize the most informative features when noise becomes significant, but introduces unnecessary complexity when the signal-to-noise ratio is already high.
+图~\ref{fig:noise_sensitivity}说明了每种方法的平均参数识别误差如何随测量噪声水平变化。标准神经网络表现出明显的退化趋势，误差从$\eta = 0.01$时的0.0014\%增加到$\eta = 0.05$时的0.0439\%。相比之下，注意力增强网络显示出非单调模式：在$\eta = 0.01$时表现略差于基线，在$\eta = 0.02$时实现完美识别，在更高噪声水平下保持优异性能（0.00225\%误差）。这种行为表明，当噪声变得显著时，注意力机制学会优先处理最具信息量的特征，但当信噪比已经很高时会引入不必要的复杂性。
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.8\columnwidth]{noise_sensitivity.png}
-\caption{Mean parameter identification error as a function of measurement noise level. The attention-enhanced neural network maintains low error rates even at high noise levels, while the baseline neural network's performance degrades significantly as noise increases.}
+\caption{平均参数识别误差作为测量噪声水平的函数。注意力增强神经网络即使在高噪声水平下也保持低误差率，而基线神经网络的性能随着噪声增加而显著退化。}
 \label{fig:noise_sensitivity}
 \end{figure}
 
-The learned attention weights provide interpretable insights into which input features are most informative for parameter identification. Figure~\ref{fig:attention_weights} shows the evolution of attention weights during training for the four input features: steering angle ($\delta$), velocity ($v$), sideslip angle ($\beta$), and yaw rate ($r$). The attention mechanism learns to assign different importance weights to each feature based on their relevance to identifying the cornering stiffness parameters. At higher noise levels, the model tends to weight features that are more robust to noise contamination, demonstrating the adaptive nature of the attention mechanism.
+学习到的注意力权重为哪些输入特征对参数识别最具信息量提供了可解释的洞察。图~\ref{fig:attention_weights}显示了四个输入特征在训练期间注意力权重的演变：转向角（$\delta$）、速度（$v$）、侧偏角（$\beta$）和横摆角速度（$r$）。注意力机制学会根据每个特征与识别侧偏刚度参数的相关性为其分配不同的重要性权重。在较高噪声水平下，模型倾向于加权对噪声污染更鲁棒的特征，展示了注意力机制的自适应性质。
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.8\columnwidth]{attention_weights.png}
-\caption{Evolution of attention weights during training for each input feature. Each line represents a different run, showing how the attention weight for that feature changed over training epochs.}
+\caption{每个输入特征在训练期间注意力权重的演变。每条线代表不同的运行，显示该特征的注意力权重如何在训练轮次中变化。}
 \label{fig:attention_weights}
 \end{figure}
 
-Figure~\ref{fig:final_attention} displays the final converged attention weights for each input feature across all runs. By comparing attention weights across different noise levels, we observe how the model's feature prioritization strategy adapts to different noise conditions. At low noise levels, the attention weights are more evenly distributed, while at higher noise levels, the model learns to concentrate attention on specific features that provide the most reliable information for parameter identification. This adaptive feature selection is a key advantage of the attention-enhanced approach, enabling robust performance across varying noise conditions.
+图~\ref{fig:final_attention}显示了所有运行中每个输入特征的最终收敛注意力权重。通过比较不同噪声水平下的注意力权重，我们观察到模型的特征优先级策略如何适应不同的噪声条件。在低噪声水平下，注意力权重分布更均匀，而在较高噪声水平下，模型学会将注意力集中在为参数识别提供最可靠信息的特定特征上。这种自适应特征选择是注意力增强方法的关键优势，能够在不同噪声条件下实现鲁棒性能。
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.8\columnwidth]{final_attention_weights.png}
-\caption{Final converged attention weights for each input feature across all runs. The plot summarizes which features the attention mechanism ultimately deemed most important for parameter identification after training converged.}
+\caption{所有运行中每个输入特征的最终收敛注意力权重。该图总结了在训练收敛后注意力机制最终认为哪些特征对参数识别最重要。}
 \label{fig:final_attention}
 \end{figure}
 
-Figure~\ref{fig:parameter_comparison} displays a side-by-side comparison of the identified cornering stiffness parameters ($C_f$ and $C_r$) across all experimental runs and methods. The true parameter values ($C_f^* = 80000$ N/rad, $C_r^* = 90000$ N/rad) are shown as red dashed horizontal lines for reference. This visualization allows for direct comparison of how close each method's predictions are to the true values across different noise levels. The attention-enhanced network's predictions remain closest to the true values at higher noise levels, demonstrating its robustness to measurement noise.
+图~\ref{fig:parameter_comparison}显示了所有实验运行和方法中识别的侧偏刚度参数（$C_f$和$C_r$）的并排比较。真实参数值（$C_f^* = 80000$ N/rad，$C_r^* = 90000$ N/rad）显示为红色虚线水平线作为参考。这种可视化允许直接比较每种方法在不同噪声水平下的预测与真实值的接近程度。注意力增强网络的预测在较高噪声水平下保持最接近真实值，展示了其对测量噪声的鲁棒性。
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.9\columnwidth]{parameter_comparison.png}
-\caption{Comparison of identified cornering stiffness parameters ($C_f$ and $C_r$) across all experimental runs and methods. True parameter values are shown as red dashed horizontal lines.}
+\caption{所有实验运行和方法中识别的侧偏刚度参数（$C_f$和$C_r$）的比较。真实参数值显示为红色虚线水平线。}
 \label{fig:parameter_comparison}
 \end{figure}
 
-Figure~\ref{fig:error_comparison} presents a box plot comparison of the mean parameter identification errors across all methods. Each box represents the distribution of errors for a particular method across all runs where that method was evaluated. The plot clearly shows that the attention-enhanced neural network achieves consistently low errors across different noise conditions, while the standard neural network exhibits higher variance and the least squares method shows the highest error rates. The logarithmic scale on the y-axis accommodates the wide range of error values observed.
+图~\ref{fig:error_comparison}展示了所有方法的平均参数识别误差的箱线图比较。每个箱代表特定方法在所有评估运行中的误差分布。该图清楚地显示，注意力增强神经网络在不同噪声条件下实现了一致的低误差，而标准神经网络表现出更高的方差，最小二乘法显示出最高的误差率。y轴上的对数刻度适应了观察到的广泛误差值范围。
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.8\columnwidth]{error_comparison.png}
-\caption{Box plot comparison of mean parameter identification errors across all methods. The y-axis uses a logarithmic scale to accommodate the wide range of error values observed.}
+\caption{所有方法的平均参数识别误差的箱线图比较。y轴使用对数刻度以适应观察到的广泛误差值范围。}
 \label{fig:error_comparison}
 \end{figure}
 
-Figure~\ref{fig:training_curves} displays the training loss curves for the neural network-based methods. The left subplot shows training and validation losses for both the standard neural network and the attention-enhanced neural network across all runs. Both methods converge within the 100-epoch training period, with the attention-enhanced network showing similar convergence behavior to the baseline. The validation losses track the training losses closely, indicating that overfitting is not a significant issue for either method. The logarithmic scale on the y-axis helps visualize the convergence behavior across different noise levels.
+图~\ref{fig:training_curves}显示了基于神经网络方法的训练损失曲线。左子图显示了所有运行中标准神经网络和注意力增强神经网络的训练和验证损失。两种方法都在100个轮次的训练期内收敛，注意力增强网络显示出与基线相似的收敛行为。验证损失密切跟踪训练损失，表明过拟合对两种方法都不是重大问题。y轴上的对数刻度有助于可视化不同噪声水平下的收敛行为。
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.9\columnwidth]{training_curves.png}
-\caption{Training and validation loss curves for the neural network-based methods. Solid lines represent training loss, while dashed lines represent validation loss. The y-axis uses a logarithmic scale.}
+\caption{基于神经网络方法的训练和验证损失曲线。实线表示训练损失，虚线表示验证损失。y轴使用对数刻度。}
 \label{fig:training_curves}
 \end{figure}
 
-\subsection{Physics-informed interpretation of attention weights}
+\subsection{注意力权重的物理信息解释}
 \label{sec:physics_interpretation}
 
-To deepen our understanding of the learned attention mechanism, we analyze the attention weights through the lens of vehicle dynamics physics. This physics-informed interpretation reveals why certain features receive higher attention and validates the learned feature prioritization against domain knowledge from vehicle dynamics theory.
+为了加深对学习到的注意力机制的理解，我们通过车辆动力学物理学的视角分析注意力权重。这种物理信息解释揭示了为什么某些特征获得更高的注意力，并根据车辆动力学理论的领域知识验证了学习到的特征优先级。
 
-\textbf{Theoretical sensitivity analysis.} From the bicycle model equations (Section~\ref{sec:vehicle_model}), we can derive the theoretical sensitivity of vehicle states to cornering stiffness parameters. The sideslip angle $\beta$ and yaw rate $r$ dynamics are directly governed by:
+\textbf{理论敏感性分析。}从自行车模型方程（第~\ref{sec:vehicle_model}节），我们可以推导车辆状态对侧偏刚度参数的理论敏感性。侧偏角$\beta$和横摆角速度$r$的动力学直接由以下方程控制：
 \begin{equation}
 \dot{\beta} = -\frac{C_f + C_r}{mv}\beta + \left(-1 + \frac{L_f C_f - L_r C_r}{mv^2}\right)r + \frac{C_f}{mv}\delta
 \end{equation}
@@ -284,71 +289,71 @@ To deepen our understanding of the learned attention mechanism, we analyze the a
 \dot{r} = \frac{L_f C_f - L_r C_r}{I_z}\beta - \frac{L_f^2 C_f + L_r^2 C_r}{I_z v}r + \frac{L_f C_f}{I_z}\delta
 \end{equation}
 
-From these equations, we observe that the cornering stiffness parameters $(C_f, C_r)$ appear in combinations that are \textit{velocity-dependent}. Specifically, the sensitivity $\frac{\partial \dot{\beta}}{\partial C_f}$ and $\frac{\partial \dot{r}}{\partial C_f}$ are inversely proportional to velocity $v$. This suggests that velocity information is critical for disambiguating the effects of cornering stiffness on vehicle motion, particularly when identifying parameters from noisy measurements where $\beta$ and $r$ are contaminated.
+从这些方程中，我们观察到侧偏刚度参数$(C_f, C_r)$以\textit{速度相关}的组合形式出现。具体来说，敏感性$\frac{\partial \dot{\beta}}{\partial C_f}$和$\frac{\partial \dot{r}}{\partial C_f}$与速度$v$成反比。这表明速度信息对于消除侧偏刚度对车辆运动影响的歧义至关重要，特别是在从$\beta$和$r$受污染的噪声测量中识别参数时。
 
-\textbf{Velocity as a conditioning variable.} Our experimental results (Figure~\ref{fig:final_attention}) show that the attention mechanism assigns the highest weight to velocity ($v$), with attention weights approaching 1.0 across all noise levels. This aligns perfectly with the theoretical analysis: velocity acts as a \textit{conditioning variable} that modulates the relationship between tire forces and vehicle motion. In parameter identification, knowing the precise velocity allows the model to correctly scale the observed lateral dynamics to infer cornering stiffness. Since velocity is typically measured by wheel speed sensors or GPS with relatively low noise compared to inertial measurements ($\beta$, $r$), it provides a stable reference signal for the attention mechanism.
+\textbf{速度作为调节变量。}我们的实验结果（图~\ref{fig:final_attention}）显示，注意力机制为速度（$v$）分配了最高的权重，在所有噪声水平下注意力权重接近1.0。这与理论分析完全一致：速度作为\textit{调节变量}，调制轮胎力与车辆运动之间的关系。在参数识别中，了解精确的速度使模型能够正确缩放观察到的横向动力学以推断侧偏刚度。由于速度通常由轮速传感器或GPS测量，与惯性测量（$\beta$、$r$）相比噪声相对较低，它为注意力机制提供了稳定的参考信号。
 
-\textbf{Noise characteristics of vehicle sensors.} The asymmetric attention distribution can be further explained by considering typical sensor noise characteristics in vehicle systems:
+\textbf{车辆传感器的噪声特性。}通过考虑车辆系统中典型的传感器噪声特性，可以进一步解释不对称的注意力分布：
 \begin{itemize}
-    \item \textbf{Velocity} ($v$): Measured via wheel encoders or GPS, exhibits low-frequency drift and multiplicative noise (proportional to speed), but generally has high signal-to-noise ratio for the velocity range considered (10-30 m/s).
-    \item \textbf{Steering angle} ($\delta$): Measured by potentiometers or optical encoders on the steering column, typically has very low noise and high precision.
-    \item \textbf{Sideslip angle} ($\beta$): Not directly measured; typically estimated from lateral accelerometer and yaw rate sensors, prone to integration drift and model uncertainties.
-    \item \textbf{Yaw rate} ($r$): Measured by gyroscopes, subject to bias drift and white noise, particularly sensitive to vibrations and temperature variations.
+    \item \textbf{速度}（$v$）：通过轮速编码器或GPS测量，表现出低频漂移和乘性噪声（与速度成比例），但在考虑的速度范围（10-30 m/s）内通常具有高信噪比。
+    \item \textbf{转向角}（$\delta$）：由转向柱上的电位计或光学编码器测量，通常具有非常低的噪声和高精度。
+    \item \textbf{侧偏角}（$\beta$）：不直接测量；通常从横向加速度计和横摆角速度传感器估计，容易受到积分漂移和模型不确定性的影响。
+    \item \textbf{横摆角速度}（$r$）：由陀螺仪测量，受偏置漂移和白噪声的影响，对振动和温度变化特别敏感。
 \end{itemize}
 
-Given that $\beta$ and $r$ are the states where noise is injected in our experiments (Section~\ref{sec:experimental}), the attention mechanism's strategy of down-weighting these features while emphasizing $v$ and $\delta$ is physically justified. The model learns to extract parameter information primarily from the \textit{relationship} between clean inputs ($v$, $\delta$) and noisy outputs ($\beta$, $r$), rather than relying on the absolute values of the noisy measurements.
+鉴于$\beta$和$r$是我们实验中注入噪声的状态（第~\ref{sec:experimental}节），注意力机制降低这些特征权重同时强调$v$和$\delta$的策略在物理上是合理的。模型学会主要从干净输入（$v$、$\delta$）和噪声输出（$\beta$、$r$）之间的\textit{关系}中提取参数信息，而不是依赖于噪声测量的绝对值。
 
-\textbf{Information content for parameter identification.} From an information-theoretic perspective, the cornering stiffness parameters $C_f$ and $C_r$ determine how the vehicle \textit{responds} to steering inputs at different velocities. The transfer function from steering angle $\delta$ to lateral states ($\beta$, $r$) is parametrized by $(C_f, C_r)$ and modulated by velocity $v$. Therefore, the tuple $(\delta, v)$ encodes the excitation that probes the system's cornering stiffness, while $(\beta, r)$ encode the response. The attention mechanism's emphasis on velocity suggests it has learned to use $v$ as a scaling factor to normalize the input-output relationship, effectively implementing a form of \textit{gain scheduling} where the parameter identification is conditioned on the operating point (velocity).
+\textbf{参数识别的信息内容。}从信息论的角度来看，侧偏刚度参数$C_f$和$C_r$决定了车辆在不同速度下如何\textit{响应}转向输入。从转向角$\delta$到横向状态（$\beta$、$r$）的传递函数由$(C_f, C_r)$参数化，并由速度$v$调制。因此，元组$(\delta, v)$编码了探测系统侧偏刚度的激励，而$(\beta, r)$编码了响应。注意力机制对速度的强调表明它已经学会使用$v$作为缩放因子来归一化输入-输出关系，有效地实现了一种\textit{增益调度}形式，其中参数识别以工作点（速度）为条件。
 
-\textbf{Physical consistency check.} To validate this interpretation, we can examine the limiting cases:
+\textbf{物理一致性检查。}为了验证这种解释，我们可以检查极限情况：
 \begin{itemize}
-    \item \textbf{Low velocity regime} ($v \to 0$): The sensitivity $\frac{\partial \dot{\beta}}{\partial C_f} \propto \frac{1}{v}$ diverges, making parameter identification increasingly ill-conditioned. Our data generation procedure samples $v \sim \mathcal{U}(10, 30)$ m/s, avoiding this singularity.
-    \item \textbf{High velocity regime} ($v \to \infty$): The lateral acceleration approaches $v \dot{\beta} \approx \frac{C_f + C_r}{m}\beta$, which depends on the sum $(C_f + C_r)$ but loses sensitivity to the individual values and their distribution. This explains why parameter identification is generally more robust at moderate speeds.
+    \item \textbf{低速区域}（$v \to 0$）：敏感性$\frac{\partial \dot{\beta}}{\partial C_f} \propto \frac{1}{v}$发散，使参数识别变得越来越病态。我们的数据生成过程采样$v \sim \mathcal{U}(10, 30)$ m/s，避免了这种奇异性。
+    \item \textbf{高速区域}（$v \to \infty$）：横向加速度接近$v \dot{\beta} \approx \frac{C_f + C_r}{m}\beta$，这取决于总和$(C_f + C_r)$，但对各个值及其分布的敏感性降低。这解释了为什么参数识别在中等速度下通常更鲁棒。
 \end{itemize}
 
-The learned attention weights thus reflect these physical constraints, with velocity serving as the primary conditioning variable that determines the operating regime for parameter identification.
+因此，学习到的注意力权重反映了这些物理约束，速度作为决定参数识别工作区域的主要调节变量。
 
-\textbf{Implications for physics-informed attention.} This analysis suggests a promising direction for incorporating physical knowledge into the attention mechanism. Rather than learning attention weights purely from data, we could initialize or regularize the attention layer to reflect known physical sensitivities. For example, we could modify the attention mechanism to explicitly model the velocity-dependent gain:
+\textbf{对物理信息注意力的启示。}这个分析为将物理知识融入注意力机制提出了一个有前景的方向。我们可以初始化或正则化注意力层以反映已知的物理敏感性，而不是纯粹从数据中学习注意力权重。例如，我们可以修改注意力机制以显式建模速度依赖增益：
 \begin{equation}
 \mathbf{a} = \text{softmax}\left(\mathbf{W}_a \mathbf{x} + \mathbf{b}_a + \lambda \cdot \mathbf{g}(v)\right)
 \end{equation}
-where $\mathbf{g}(v)$ is a physics-derived bias term that encodes the theoretical sensitivity structure, and $\lambda$ controls the strength of this inductive bias. This physics-informed attention could potentially improve both data efficiency (requiring fewer training samples) and extrapolation capability (better performance on operating conditions not seen during training).
+其中$\mathbf{g}(v)$是编码理论敏感性结构的物理导出偏置项，$\lambda$控制这种归纳偏差的强度。这种物理信息注意力可能提高数据效率（需要更少的训练样本）和外推能力（对训练期间未见过的运行条件有更好的性能）。
 
-Despite the strong performance of the attention-enhanced approach, several limitations should be noted. First, the attention mechanism introduces additional computational overhead compared to the baseline neural network, requiring extra parameters for the attention layer and additional computation during forward passes. Second, the performance trade-off at low noise levels suggests that the attention mechanism may not always be beneficial, and a hybrid approach that selectively applies attention based on estimated noise conditions could be more efficient. Third, the experiments were conducted using synthetic data from a simplified bicycle model; real-world vehicle data may present additional challenges such as non-Gaussian noise, sensor biases, and time-varying parameters that are not captured in our simulation. Finally, while the attention weights can be interpreted through physical principles as shown in Section~\ref{sec:physics_interpretation}, the current implementation does not explicitly enforce physical constraints; integrating physics-informed constraints with the attention mechanism could further improve both performance and interpretability.
+尽管注意力增强方法表现出强大的性能，但应该注意几个局限性。首先，与基线神经网络相比，注意力机制引入了额外的计算开销，需要注意力层的额外参数和前向传递期间的额外计算。其次，低噪声水平下的性能权衡表明注意力机制可能并不总是有益的，基于估计的噪声条件选择性应用注意力的混合方法可能更有效。第三，实验使用来自简化自行车模型的合成数据进行；现实世界的车辆数据可能呈现额外的挑战，如非高斯噪声、传感器偏差和时变参数，这些在我们的模拟中没有捕获。最后，虽然注意力权重可以通过第~\ref{sec:physics_interpretation}节所示的物理原理进行解释，但当前实现并未显式强制执行物理约束；将物理信息约束与注意力机制集成可能进一步提高性能和可解释性。
 
-\section{Conclusions}
+\section{结论}
 \label{sec:conclusion}
 
-This paper addressed the challenging problem of identifying vehicle steering parameters, specifically front and rear cornering stiffness, in the presence of measurement noise. We proposed an attention-enhanced neural network architecture that incorporates a self-attention mechanism to dynamically weight input features based on their relevance to parameter identification. This approach addresses a key limitation of standard neural networks, which treat all input features equally regardless of their informativeness or noise contamination.
+本文解决了在存在测量噪声的情况下识别车辆转向参数，特别是前后轮侧偏刚度的挑战性问题。我们提出了一种注意力增强神经网络架构，该架构结合了自注意力机制，根据输入特征与参数识别的相关性动态加权。这种方法解决了标准神经网络的关键局限性，即无论特征的信息量或噪声污染如何，都对所有输入特征一视同仁。
 
-Our experimental results demonstrate that the attention mechanism provides substantial benefits at higher noise levels, achieving up to 20x lower identification error compared to baseline neural networks at noise level 0.05. At moderate noise levels (0.02), the attention-enhanced network achieves perfect parameter identification (0.0\% error), significantly outperforming both least squares estimation and standard neural networks. However, we also identified a performance trade-off at low noise levels (0.01) where the baseline neural network performs slightly better, suggesting that the added complexity of the attention mechanism is unnecessary when measurement noise is minimal.
+我们的实验结果表明，注意力机制在较高噪声水平下提供了显著优势，与噪声水平0.05下的基线神经网络相比，识别误差降低了高达20倍。在中等噪声水平（0.02）下，注意力增强网络实现了完美的参数识别（0.0\%误差），显著优于最小二乘估计和标准神经网络。然而，我们也发现在低噪声水平（0.01）下存在性能权衡，基线神经网络表现略好，这表明当测量噪声最小时，注意力机制的额外复杂性是不必要的。
 
-Beyond quantitative performance improvements, the attention mechanism provides valuable interpretability through learned attention weights. Our analysis revealed how the model adapts its feature selection strategy across different noise conditions, concentrating attention on specific features that provide the most reliable information for parameter identification at higher noise levels. Through physics-informed interpretation (Section~\ref{sec:physics_interpretation}), we demonstrated that the learned attention weights align with theoretical sensitivities from vehicle dynamics: the mechanism learns to prioritize velocity as a conditioning variable, which modulates the relationship between steering inputs and lateral responses according to the bicycle model equations. This physics-consistent behavior validates that the attention mechanism has discovered fundamental structure in the parameter identification problem, rather than merely exploiting statistical correlations. The interpretability represents a significant advantage over black-box neural network approaches, bridging data-driven learning with domain knowledge from vehicle dynamics theory.
+除了定量性能改进之外，注意力机制通过学习到的注意力权重提供了有价值的可解释性。我们的分析揭示了模型如何在不同噪声条件下调整其特征选择策略，在较高噪声水平下将注意力集中在为参数识别提供最可靠信息的特定特征上。通过物理信息解释（第~\ref{sec:physics_interpretation}节），我们证明了学习到的注意力权重与车辆动力学的理论敏感性一致：机制学会优先考虑速度作为调节变量，根据自行车模型方程调制转向输入和横向响应之间的关系。这种物理一致的行为验证了注意力机制已经发现了参数识别问题中的基本结构，而不仅仅是利用统计相关性。可解释性代表了相对于黑盒神经网络方法的显著优势，将数据驱动学习与车辆动力学理论的领域知识联系起来。
 
-Looking forward, several promising directions for future research emerge from this work:
+展望未来，从这项工作中涌现出几个有前景的未来研究方向：
 
-\textbf{Physics-informed attention mechanisms.} Building on the theoretical analysis in Section~\ref{sec:physics_interpretation}, we propose incorporating physical knowledge directly into the attention architecture. Rather than learning attention weights purely from data, the attention layer could be initialized or regularized using theoretical sensitivity derivatives from the bicycle model. For instance, the velocity-dependent gain structure $\mathbf{g}(v)$ derived from $\frac{\partial \dot{\beta}}{\partial C_f} \propto \frac{1}{v}$ could provide an inductive bias that improves data efficiency and extrapolation to unseen operating conditions. This would create a hybrid approach that leverages both first-principles physics and data-driven learning.
+\textbf{物理信息注意力机制。}基于第~\ref{sec:physics_interpretation}节的理论分析，我们建议将物理知识直接融入注意力架构。注意力层可以使用来自自行车模型的理论敏感性导数进行初始化或正则化，而不是纯粹从数据中学习注意力权重。例如，从$\frac{\partial \dot{\beta}}{\partial C_f} \propto \frac{1}{v}$导出的速度依赖增益结构$\mathbf{g}(v)$可以提供归纳偏差，改善数据效率和对未见运行条件的外推。这将创建一种利用第一性原理物理和数据驱动学习的混合方法。
 
-\textbf{Multi-parameter identification.} The attention-enhanced framework could be extended to simultaneously identify multiple vehicle parameters beyond cornering stiffness, such as tire-road friction coefficients, vehicle mass, yaw moment of inertia, or center of gravity position. The attention mechanism could learn to select different feature combinations for different parameters, potentially discovering that mass identification requires acceleration data while cornering stiffness requires lateral dynamics information.
+\textbf{多参数识别。}注意力增强框架可以扩展到同时识别侧偏刚度之外的多个车辆参数，如轮胎-道路摩擦系数、车辆质量、横摆转动惯量或重心位置。注意力机制可以学习为不同参数选择不同的特征组合，可能发现质量识别需要加速度数据，而侧偏刚度需要横向动力学信息。
 
-\textbf{Adaptive noise-dependent attention.} Given the performance trade-off at low noise levels, an adaptive attention mechanism that estimates noise conditions online and modulates attention strength accordingly would be valuable. This could be implemented as a hierarchical model where a meta-learner estimates signal-to-noise ratio and gates the attention mechanism, or through uncertainty-aware attention where attention weights are conditioned on epistemic uncertainty estimates.
+\textbf{自适应噪声依赖注意力。}鉴于低噪声水平下的性能权衡，在线估计噪声条件并相应调整注意力强度的自适应注意力机制将是有价值的。这可以实现为分层模型，其中元学习器估计信噪比并门控注意力机制，或通过不确定性感知注意力，其中注意力权重以认知不确定性估计为条件。
 
-\textbf{Real-world validation and sensor fusion.} The approach should be validated on real vehicle platforms with actual sensor suites. Real-world data presents challenges beyond Gaussian noise, including sensor biases, time-varying parameters (e.g., tire wear, temperature effects), and non-ideal measurement conditions. The attention mechanism could be extended to handle multiple redundant sensors (e.g., fusing GPS, IMU, and wheel speed data) by learning optimal sensor weighting strategies.
+\textbf{现实世界验证和传感器融合。}该方法应在具有实际传感器套件的真实车辆平台上进行验证。现实世界数据呈现超越高斯噪声的挑战，包括传感器偏差、时变参数（例如轮胎磨损、温度效应）和非理想测量条件。注意力机制可以扩展到处理多个冗余传感器（例如融合GPS、IMU和轮速数据），通过学习最优传感器加权策略。
 
-\textbf{Online adaptation and recursive estimation.} For deployed vehicle systems, parameters may change over time due to tire wear, payload variations, or changing road conditions. Extending the attention-enhanced architecture to online learning scenarios where the model adapts continuously from streaming data would enable real-time parameter tracking. This could combine the attention mechanism with recursive estimation frameworks like extended Kalman filters.
+\textbf{在线适应和递归估计。}对于部署的车辆系统，参数可能由于轮胎磨损、载荷变化或变化的道路条件而随时间变化。将注意力增强架构扩展到在线学习场景，其中模型从流数据持续适应，将实现实时参数跟踪。这可以将注意力机制与扩展卡尔曼滤波器等递归估计框架结合起来。
 
-\textbf{Diagnostic and sensor optimization applications.} The learned attention weights provide interpretable insights into feature importance that could inform vehicle instrumentation design. By analyzing which measurements receive high attention weights under different operating conditions, engineers could optimize sensor placement, sampling rates, and redundancy requirements. The attention mechanism could also serve as a diagnostic tool, detecting sensor degradation when attention weights deviate from expected patterns.
+\textbf{诊断和传感器优化应用。}学习到的注意力权重提供了对特征重要性的可解释洞察，可以为车辆仪表设计提供信息。通过分析在不同运行条件下哪些测量获得高注意力权重，工程师可以优化传感器放置、采样率和冗余要求。注意力机制还可以作为诊断工具，在注意力权重偏离预期模式时检测传感器退化。
 
 \begin{acks}
-This work was supported by [funding information to be added].
+本工作得到了[待添加的资助信息]的支持。
 \end{acks}
 
 \begin{dci}
-The authors declare that there is no conflict of interest.
+作者声明不存在利益冲突。
 \end{dci}
 
 \begin{funding}
-This research received no specific grant from any funding agency in the public, commercial, or not-for-profit sectors.
+本研究未从公共、商业或非营利部门的任何资助机构获得特定资助。
 \end{funding}
 
 \bibliographystyle{SageH}
