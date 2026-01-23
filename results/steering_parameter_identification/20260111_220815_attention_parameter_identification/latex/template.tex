@@ -200,7 +200,7 @@ We present the results of our experiments comparing the attention-enhanced neura
 
 Table~\ref{tab:results} summarizes the parameter identification errors for all methods across the four noise levels. At the lowest noise level ($\eta = 0.01$), the standard neural network achieves the best performance with a mean error of 0.0014\%, while the attention-enhanced network achieves 0.0264\% error. This represents a trade-off where the added complexity of the attention mechanism is unnecessary when measurement noise is minimal. However, at moderate noise level ($\eta = 0.02$), the attention-enhanced network achieves perfect parameter identification (0.0\% error), significantly outperforming both the standard neural network (0.0209\% error) and least squares estimation (1.020\% mean error).
 
-At higher noise levels, the attention mechanism provides increasingly substantial benefits. At $\eta = 0.05$, the attention-enhanced network achieves a mean error of 0.00225\%, representing approximately 20x improvement over the standard neural network (0.0439\% error). The least squares method performs poorly with 0.763\% mean error. Interestingly, at the highest noise level ($\eta = 0.1$), the attention-enhanced network maintains the same performance (0.00225\% error), while the standard neural network's performance remains degraded at 0.0439\% error. This suggests that the attention mechanism reaches a stable performance plateau where it effectively filters out noise regardless of the exact noise level within this range.
+At higher noise levels, the attention mechanism provides increasingly substantial benefits. At $\eta = 0.05$, the attention-enhanced network achieves a mean error of 0.00225\%, representing approximately 20x improvement over the standard neural network (0.0439\% error). The least squares method performs poorly with 0.763\% mean error. At the highest noise level ($\eta = 0.1$), the attention-enhanced network achieves 0.00517\% error, while the standard neural network shows improved performance at 0.0156\% error compared to $\eta = 0.05$. The least squares method shows continued improvement at 0.464\% error. This suggests that at very high noise levels, the baseline neural network also begins to benefit from the noise averaging effects, though the attention-enhanced approach still maintains a 3x performance advantage.
 
 \begin{table}[t]
 \small\sf\centering
@@ -210,19 +210,19 @@ At higher noise levels, the attention mechanism provides increasingly substantia
 \toprule
 \textbf{Method} & $\eta = 0.01$ & $\eta = 0.02$ & $\eta = 0.05$ & $\eta = 0.1$ \\
 \midrule
-Least Squares & 1.080 & 1.020 & 0.763 & 0.763 \\
-Standard NN & \textbf{0.0014} & 0.0209 & 0.0439 & 0.0439 \\
-Attention NN & 0.0264 & \textbf{0.0} & \textbf{0.00225} & \textbf{0.00225} \\
+Least Squares & 1.080 & 1.020 & 0.763 & 0.464 \\
+Standard NN & \textbf{0.0014} & 0.0209 & 0.0439 & 0.0156 \\
+Attention NN & 0.0264 & \textbf{0.0} & \textbf{0.00225} & \textbf{0.00517} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Figure~\ref{fig:noise_sensitivity} illustrates how the mean parameter identification error varies with measurement noise level for each method. The standard neural network exhibits a clear degradation trend, with error increasing from 0.0014\% at $\eta = 0.01$ to 0.0439\% at $\eta = 0.05$. In contrast, the attention-enhanced network shows a non-monotonic pattern: it performs slightly worse than the baseline at $\eta = 0.01$, achieves perfect identification at $\eta = 0.02$, and maintains excellent performance (0.00225\% error) at higher noise levels. This behavior suggests that the attention mechanism learns to prioritize the most informative features when noise becomes significant, but introduces unnecessary complexity when the signal-to-noise ratio is already high.
+Figure~\ref{fig:noise_sensitivity} illustrates how the mean parameter identification error varies with measurement noise level for each method. The standard neural network exhibits a non-monotonic pattern, with error increasing from 0.0014\% at $\eta = 0.01$ to a peak of 0.0439\% at $\eta = 0.05$, then decreasing to 0.0156\% at $\eta = 0.1$, suggesting that very high noise levels may provide some regularization effect. In contrast, the attention-enhanced network shows a different pattern: it performs slightly worse than the baseline at $\eta = 0.01$ (0.0264\% error), achieves perfect identification at $\eta = 0.02$ (0.0\% error), maintains excellent performance at $\eta = 0.05$ (0.00225\% error), and shows a slight increase to 0.00517\% at $\eta = 0.1$. This behavior suggests that the attention mechanism learns to prioritize the most informative features when noise becomes significant, though its advantage is most pronounced at moderate-to-high noise levels rather than at extreme noise conditions.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.8\columnwidth]{noise_sensitivity.png}
-\caption{Mean parameter identification error as a function of measurement noise level. The attention-enhanced neural network maintains low error rates even at high noise levels, while the baseline neural network's performance degrades significantly as noise increases.}
+\caption{Mean parameter identification error as a function of measurement noise level. The attention-enhanced neural network maintains consistently low error rates across different noise levels, while the baseline neural network shows a non-monotonic pattern with peak degradation at moderate-high noise levels.}
 \label{fig:noise_sensitivity}
 \end{figure}
 
@@ -262,12 +262,12 @@ Figure~\ref{fig:error_comparison} presents a box plot comparison of the mean par
 \label{fig:error_comparison}
 \end{figure}
 
-Figure~\ref{fig:training_curves} displays the training loss curves for the neural network-based methods. The left subplot shows training and validation losses for both the standard neural network and the attention-enhanced neural network across all runs. Both methods converge within the 100-epoch training period, with the attention-enhanced network showing similar convergence behavior to the baseline. The validation losses track the training losses closely, indicating that overfitting is not a significant issue for either method. The logarithmic scale on the y-axis helps visualize the convergence behavior across different noise levels.
+Figure~\ref{fig:training_curves} displays the training loss curves for the neural network-based methods. The left subplot shows training and validation losses for the standard neural network, while the right subplot shows the corresponding curves for the attention-enhanced neural network, across all experimental runs. Both methods converge within the 100-epoch training period, with the attention-enhanced network showing similar convergence behavior to the baseline. The validation losses track the training losses closely, indicating that overfitting is not a significant issue for either method. The logarithmic scale on the y-axis helps visualize the convergence behavior across different noise levels.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.9\columnwidth]{training_curves.png}
-\caption{Training and validation loss curves for the neural network-based methods. Solid lines represent training loss, while dashed lines represent validation loss. The y-axis uses a logarithmic scale.}
+\caption{Training and validation loss curves for the neural network-based methods. The left subplot shows the standard neural network training dynamics, while the right subplot shows the attention-enhanced neural network training dynamics. Solid lines represent training loss, while dashed lines represent validation loss. The y-axis uses a logarithmic scale to better visualize convergence behavior.}
 \label{fig:training_curves}
 \end{figure}
 
