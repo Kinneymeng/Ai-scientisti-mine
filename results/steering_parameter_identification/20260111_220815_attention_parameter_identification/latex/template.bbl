@@ -1,97 +1,79 @@
 \begin{thebibliography}{13}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
+\providecommand{\urlprefix}{URL }
 \expandafter\ifx\csname urlstyle\endcsname\relax
-  \providecommand{\doi}[1]{doi: #1}\else
-  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+  \providecommand{\doi}[1]{DOI:\discretionary{}{}{}#1}\else
+  \providecommand{\doi}{DOI:\discretionary{}{}{}\begingroup
+  \urlstyle{rm}\Url}\fi
 
-\bibitem[Bellec et~al.(2023)]{Bellec2023ErrorEA}
-P.~Bellec et~al.
-\newblock Error estimation and adaptive tuning for robust m-estimators.
-\newblock \emph{Journal of Machine Learning Research}, 2023.
-\newblock Placeholder entry.
+\bibitem[{Bellec et~al.(2023)}]{Bellec2023ErrorEA}
+Bellec P et~al. (2023) Error estimation and adaptive tuning for robust
+  m-estimators.
+\newblock \emph{Journal of Machine Learning Research} Placeholder entry.
 
-\bibitem[Cai et~al.(2025)]{Cai2025JointEO}
-Y.~Cai et~al.
-\newblock Joint estimation of tire cornering stiffness and vehicle operating
-  states.
-\newblock \emph{IEEE Transactions on Vehicular Technology}, 2025.
-\newblock Placeholder entry.
+\bibitem[{Cai et~al.(2025)}]{Cai2025JointEO}
+Cai Y et~al. (2025) Joint estimation of tire cornering stiffness and vehicle
+  operating states.
+\newblock \emph{IEEE Transactions on Vehicular Technology} Placeholder entry.
 
-\bibitem[Castelan-Perez et~al.(2025)]{CastelanPerez2025FilteringAF}
-M.~Castelan-Perez et~al.
-\newblock Filtering and fractional differentiation for robust algebraic
-  parameter estimation.
-\newblock \emph{Automatica}, 2025.
-\newblock Placeholder entry.
+\bibitem[{Castelan-Perez et~al.(2025)}]{CastelanPerez2025FilteringAF}
+Castelan-Perez M et~al. (2025) Filtering and fractional differentiation for
+  robust algebraic parameter estimation.
+\newblock \emph{Automatica} Placeholder entry.
 
-\bibitem[Chen et~al.(2024)]{Chen2024VehicleSE}
-X.~Chen et~al.
-\newblock Vehicle state estimation with recursive least squares and adaptive
-  kalman filter.
-\newblock \emph{Control Engineering Practice}, 2024.
-\newblock Placeholder entry.
+\bibitem[{Chen et~al.(2024)}]{Chen2024VehicleSE}
+Chen X et~al. (2024) Vehicle state estimation with recursive least squares and
+  adaptive kalman filter.
+\newblock \emph{Control Engineering Practice} Placeholder entry.
 
-\bibitem[Devos et~al.(2024)]{Devos2024ALI}
-A.~Devos et~al.
-\newblock A least-squares identification method for vehicle cornering
-  stiffness.
-\newblock \emph{Vehicle System Dynamics}, 2024.
-\newblock Placeholder entry.
+\bibitem[{Devos et~al.(2024)}]{Devos2024ALI}
+Devos A et~al. (2024) A least-squares identification method for vehicle
+  cornering stiffness.
+\newblock \emph{Vehicle System Dynamics} Placeholder entry.
 
-\bibitem[Dosovitskiy et~al.(2021)]{Dosovitskiy2020AnII}
-Alexey Dosovitskiy et~al.
-\newblock An image is worth 16x16 words: Transformers for image recognition at
-  scale.
-\newblock \emph{International Conference on Learning Representations}, 2021.
-\newblock Placeholder entry.
+\bibitem[{Dosovitskiy et~al.(2021)}]{Dosovitskiy2020AnII}
+Dosovitskiy A et~al. (2021) An image is worth 16x16 words: Transformers for
+  image recognition at scale.
+\newblock \emph{International Conference on Learning Representations}
+  Placeholder entry.
 
-\bibitem[Hermansdorfer et~al.(2020)]{Hermansdorfer2020EndtoEnd}
-M.~Hermansdorfer et~al.
-\newblock End-to-end neural network for vehicle dynamics modeling.
-\newblock \emph{IEEE Transactions on Intelligent Transportation Systems}, 2020.
-\newblock Placeholder entry.
+\bibitem[{Hermansdorfer et~al.(2020)}]{Hermansdorfer2020EndtoEnd}
+Hermansdorfer M et~al. (2020) End-to-end neural network for vehicle dynamics
+  modeling.
+\newblock \emph{IEEE Transactions on Intelligent Transportation Systems}
+  Placeholder entry.
 
-\bibitem[Narendra \& Parthasarathy(1990)Narendra and
-  Parthasarathy]{Narendra1990IdentificationAC}
-Kumpati~S. Narendra and K.~Parthasarathy.
-\newblock Identification and control of dynamical systems using neural
-  networks.
-\newblock \emph{IEEE Transactions on Neural Networks}, 1\penalty0 (1):\penalty0
-  4--27, 1990.
+\bibitem[{Narendra and Parthasarathy(1990)}]{Narendra1990IdentificationAC}
+Narendra KS and Parthasarathy K (1990) Identification and control of dynamical
+  systems using neural networks.
+\newblock \emph{IEEE Transactions on Neural Networks} 1(1): 4--27.
 
-\bibitem[Raissi et~al.(2019)Raissi, Perdikaris, and
-  Karniadakis]{Raissi2019PhysicsinformedNN}
-Maziar Raissi, Paris Perdikaris, and George~E Karniadakis.
-\newblock Physics-informed neural networks: A deep learning framework for
-  solving forward and inverse problems involving nonlinear partial differential
-  equations.
-\newblock \emph{Journal of Computational Physics}, 378:\penalty0 686--707,
-  2019.
+\bibitem[{Raissi et~al.(2019)Raissi, Perdikaris and
+  Karniadakis}]{Raissi2019PhysicsinformedNN}
+Raissi M, Perdikaris P and Karniadakis GE (2019) Physics-informed neural
+  networks: A deep learning framework for solving forward and inverse problems
+  involving nonlinear partial differential equations.
+\newblock \emph{Journal of Computational Physics} 378: 686--707.
 
-\bibitem[Rajamani(2012)]{rajamani2012vehicle}
-Rajesh Rajamani.
-\newblock \emph{Vehicle dynamics and control}.
-\newblock Springer Science \& Business Media, 2012.
+\bibitem[{Rajamani(2012)}]{rajamani2012vehicle}
+Rajamani R (2012) \emph{Vehicle dynamics and control}.
+\newblock Springer Science \& Business Media.
 
-\bibitem[Song et~al.(2025)]{Song2025DataDriven}
-L.~Song et~al.
-\newblock Data-driven system identification for driver assistance control.
-\newblock \emph{Automatica}, 2025.
-\newblock Placeholder entry.
+\bibitem[{Song et~al.(2025)}]{Song2025DataDriven}
+Song L et~al. (2025) Data-driven system identification for driver assistance
+  control.
+\newblock \emph{Automatica} Placeholder entry.
 
-\bibitem[Vaswani et~al.(2017)Vaswani, Shazeer, Parmar, Uszkoreit, Jones, Gomez,
-  Kaiser, and Polosukhin]{Vaswani2017AttentionIA}
-Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones,
-  Aidan~N Gomez, {\L}ukasz Kaiser, and Illia Polosukhin.
-\newblock Attention is all you need.
-\newblock \emph{Advances in neural information processing systems}, 30, 2017.
+\bibitem[{Vaswani et~al.(2017)Vaswani, Shazeer, Parmar, Uszkoreit, Jones,
+  Gomez, Kaiser and Polosukhin}]{Vaswani2017AttentionIA}
+Vaswani A, Shazeer N, Parmar N, Uszkoreit J, Jones L, Gomez AN, Kaiser {\L} and
+  Polosukhin I (2017) Attention is all you need.
+\newblock \emph{Advances in neural information processing systems} 30.
 
-\bibitem[Zhang et~al.(2025)]{Zhang2025ARF}
-W.~Zhang et~al.
-\newblock A robust fuzzy regression framework with piecewise smooth huber
-  function.
-\newblock \emph{IEEE Transactions on Fuzzy Systems}, 2025.
-\newblock Placeholder entry.
+\bibitem[{Zhang et~al.(2025)}]{Zhang2025ARF}
+Zhang W et~al. (2025) A robust fuzzy regression framework with piecewise smooth
+  huber function.
+\newblock \emph{IEEE Transactions on Fuzzy Systems} Placeholder entry.
 
 \end{thebibliography}
