@@ -14,9 +14,9 @@
 \fi}
 \global\let\hyper@last\relax 
 \gdef\HyperFirstAtBeginDocument#1{#1}
-\providecommand\HyField@AuxAddToFields[1]{}
-\providecommand\HyField@AuxAddToCoFields[2]{}
+\providecommand*\HyPL@Entry[1]{}
 \citation{rajamani2012vehicle}
+\HyPL@Entry{0<</S/D>>}
 \newlabel{FirstPage}{{}{1}{}{section*.1}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
 \newlabel{sec:intro}{{1}{1}{Introduction}{section.1}{}}
@@ -30,11 +30,11 @@
 \citation{Raissi2019PhysicsinformedNN}
 \citation{Bellec2023ErrorEA}
 \citation{Zhang2025ARF}
-\citation{CastelanPerez2025FilteringAF}
 \@writefile{toc}{\contentsline {section}{\numberline {2}Related work}{2}{section.2}\protected@file@percent }
 \newlabel{sec:related}{{2}{2}{Related work}{section.2}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Robust parameter estimation under noise}{2}{subsection.2.1}\protected@file@percent }
 \newlabel{sec:robust_estimation}{{2.1}{2}{Robust parameter estimation under noise}{subsection.2.1}{}}
+\citation{CastelanPerez2025FilteringAF}
 \citation{rajamani2012vehicle}
 \citation{rajamani2012vehicle}
 \citation{Narendra1990IdentificationAC}
@@ -63,14 +63,16 @@
 \newlabel{fig:attention_weights}{{2}{6}{Evolution of attention weights during training for each input feature. Each line represents a different run, showing how the attention weight for that feature changed over training epochs.\relax }{figure.caption.4}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Final converged attention weights for each input feature across all runs. The plot summarizes which features the attention mechanism ultimately deemed most important for parameter identification after training converged.\relax }}{6}{figure.caption.5}\protected@file@percent }
 \newlabel{fig:final_attention}{{3}{6}{Final converged attention weights for each input feature across all runs. The plot summarizes which features the attention mechanism ultimately deemed most important for parameter identification after training converged.\relax }{figure.caption.5}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Comparison of identified cornering stiffness parameters ($C_f$ and $C_r$) across all experimental runs and methods. True parameter values are shown as red dashed horizontal lines.\relax }}{6}{figure.caption.6}\protected@file@percent }
-\newlabel{fig:parameter_comparison}{{4}{6}{Comparison of identified cornering stiffness parameters ($C_f$ and $C_r$) across all experimental runs and methods. True parameter values are shown as red dashed horizontal lines.\relax }{figure.caption.6}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Box plot comparison of mean parameter identification errors across all methods. The y-axis uses a logarithmic scale to accommodate the wide range of error values observed.\relax }}{6}{figure.caption.7}\protected@file@percent }
-\newlabel{fig:error_comparison}{{5}{6}{Box plot comparison of mean parameter identification errors across all methods. The y-axis uses a logarithmic scale to accommodate the wide range of error values observed.\relax }{figure.caption.7}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Physics-informed interpretation of attention weights}{6}{subsection.6.1}\protected@file@percent }
-\newlabel{sec:physics_interpretation}{{6.1}{6}{Physics-informed interpretation of attention weights}{subsection.6.1}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Training and validation loss curves for the neural network-based methods. The left subplot shows the standard neural network training dynamics, while the right subplot shows the attention-enhanced neural network training dynamics. Solid lines represent training loss, while dashed lines represent validation loss. The y-axis uses a logarithmic scale to better visualize convergence behavior.\relax }}{7}{figure.caption.8}\protected@file@percent }
-\newlabel{fig:training_curves}{{6}{7}{Training and validation loss curves for the neural network-based methods. The left subplot shows the standard neural network training dynamics, while the right subplot shows the attention-enhanced neural network training dynamics. Solid lines represent training loss, while dashed lines represent validation loss. The y-axis uses a logarithmic scale to better visualize convergence behavior.\relax }{figure.caption.8}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Comparison of feature importance between baseline neural network and attention-enhanced neural network. The baseline network implicitly assigns equal weights to all features, while the attention mechanism learns that velocity is the most critical feature.\relax }}{6}{figure.caption.6}\protected@file@percent }
+\newlabel{fig:feature_importance}{{4}{6}{Comparison of feature importance between baseline neural network and attention-enhanced neural network. The baseline network implicitly assigns equal weights to all features, while the attention mechanism learns that velocity is the most critical feature.\relax }{figure.caption.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Comparison of identified cornering stiffness parameters ($C_f$ and $C_r$) across all experimental runs and methods. True parameter values are shown as red dashed horizontal lines.\relax }}{6}{figure.caption.7}\protected@file@percent }
+\newlabel{fig:parameter_comparison}{{5}{6}{Comparison of identified cornering stiffness parameters ($C_f$ and $C_r$) across all experimental runs and methods. True parameter values are shown as red dashed horizontal lines.\relax }{figure.caption.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Box plot comparison of mean parameter identification errors across all methods. The y-axis uses a logarithmic scale to accommodate the wide range of error values observed.\relax }}{7}{figure.caption.8}\protected@file@percent }
+\newlabel{fig:error_comparison}{{6}{7}{Box plot comparison of mean parameter identification errors across all methods. The y-axis uses a logarithmic scale to accommodate the wide range of error values observed.\relax }{figure.caption.8}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Training and validation loss curves for the neural network-based methods. The left subplot shows the standard neural network training dynamics, while the right subplot shows the attention-enhanced neural network training dynamics. Solid lines represent training loss, while dashed lines represent validation loss. The y-axis uses a logarithmic scale to better visualize convergence behavior.\relax }}{7}{figure.caption.9}\protected@file@percent }
+\newlabel{fig:training_curves}{{7}{7}{Training and validation loss curves for the neural network-based methods. The left subplot shows the standard neural network training dynamics, while the right subplot shows the attention-enhanced neural network training dynamics. Solid lines represent training loss, while dashed lines represent validation loss. The y-axis uses a logarithmic scale to better visualize convergence behavior.\relax }{figure.caption.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Physics-informed interpretation of attention weights}{7}{subsection.6.1}\protected@file@percent }
+\newlabel{sec:physics_interpretation}{{6.1}{7}{Physics-informed interpretation of attention weights}{subsection.6.1}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {7}Conclusions}{8}{section.7}\protected@file@percent }
 \newlabel{sec:conclusion}{{7}{8}{Conclusions}{section.7}{}}
 \bibstyle{SageH}
@@ -88,4 +90,4 @@
 \bibcite{Song2025DataDriven}{{11}{2025}{{Song et~al.}}{{}}}
 \bibcite{Vaswani2017AttentionIA}{{12}{2017}{{Vaswani et~al.}}{{Vaswani, Shazeer, Parmar, Uszkoreit, Jones, Gomez, Kaiser and Polosukhin}}}
 \bibcite{Zhang2025ARF}{{13}{2025}{{Zhang et~al.}}{{}}}
-\newlabel{LastPage}{{7}{9}{Conclusions}{section*.12}{}}
+\newlabel{LastPage}{{7}{9}{Conclusions}{section*.13}{}}

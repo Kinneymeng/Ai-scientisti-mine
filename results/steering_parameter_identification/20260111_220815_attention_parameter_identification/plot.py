@@ -363,6 +363,62 @@ def plot_noise_sensitivity(all_results, save_path='noise_sensitivity.png'):
     print(f"Saved: {save_path}")
 
 
+def plot_feature_importance_comparison(all_results, save_path='feature_importance_comparison.png'):
+    """
+    Plot comparison of implicit feature importance in baseline NN vs learned attention weights
+    """
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    feature_names = ['delta', 'velocity', 'beta', 'yaw_rate']
+
+    # Baseline NN has implicit equal importance (1/4 = 0.25 for each feature)
+    baseline_weights = [0.25, 0.25, 0.25, 0.25]
+
+    # Collect attention weights from all runs and compute average
+    all_attention_weights = []
+    for run_name, results in sorted(all_results.items()):
+        if results is None:
+            continue
+        if 'attention_nn' in results and 'final_attention_weights' in results['attention_nn']:
+            all_attention_weights.append(results['attention_nn']['final_attention_weights'])
+
+    if not all_attention_weights:
+        print("No attention weights found for feature importance comparison")
+        return
+
+    # Compute mean attention weights across all runs
+    attention_weights = np.mean(all_attention_weights, axis=0)
+
+    x = np.arange(len(feature_names))
+    width = 0.35
+
+    # Plot bars
+    bars1 = ax.bar(x - width/2, baseline_weights, width, label='Baseline NN (Implicit)',
+                   color='#3498db', alpha=0.8)
+    bars2 = ax.bar(x + width/2, attention_weights, width, label='Attention NN (Learned)',
+                   color='#9b59b6', alpha=0.8)
+
+    ax.set_xlabel('Input Feature', fontsize=12)
+    ax.set_ylabel('Feature Importance', fontsize=12)
+    ax.set_title('Comparison of Feature Importance: Baseline vs Attention Mechanism', fontsize=13)
+    ax.set_xticks(x)
+    ax.set_xticklabels(feature_names)
+    ax.legend(fontsize=11)
+    ax.grid(axis='y', alpha=0.3)
+    ax.set_ylim(0, 1.05)
+
+    # Add value labels on bars for attention weights
+    for i, (bar, val) in enumerate(zip(bars2, attention_weights)):
+        if val > 0.01:  # Only show labels for significant values
+            ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.02,
+                   f'{val:.4f}', ha='center', va='bottom', fontsize=9)
+
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=150, bbox_inches='tight')
+    plt.close()
+    print(f"Saved: {save_path}")
+
+
 def main():
     """Main plotting function"""
     # Find all run directories (only directories, not .py files)
@@ -395,6 +451,7 @@ def main():
     plot_training_curves(all_results)
     plot_noise_sensitivity(all_results)
     plot_attention_weights(all_results)
+    plot_feature_importance_comparison(all_results)
 
     print("\nDone!")
 

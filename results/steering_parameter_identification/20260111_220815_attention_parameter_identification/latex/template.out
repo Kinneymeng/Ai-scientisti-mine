@@ -1,13 +1,13 @@
 \BOOKMARK [1][-]{section.1}{Introduction}{}% 1
-\BOOKMARK [1][-]{section.2}{Related work}{}% 2
-\BOOKMARK [2][-]{subsection.2.1}{Robust parameter estimation under noise}{section.2}% 3
+\BOOKMARK [1][-]{section.2}{Related\040work}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Robust\040parameter\040estimation\040under\040noise}{section.2}% 3
 \BOOKMARK [1][-]{section.3}{Background}{}% 4
-\BOOKMARK [2][-]{subsection.3.1}{Vehicle dynamics model}{section.3}% 5
-\BOOKMARK [2][-]{subsection.3.2}{Parameter identification methods}{section.3}% 6
-\BOOKMARK [2][-]{subsection.3.3}{Attention mechanisms}{section.3}% 7
-\BOOKMARK [2][-]{subsection.3.4}{Problem setting}{section.3}% 8
+\BOOKMARK [2][-]{subsection.3.1}{Vehicle\040dynamics\040model}{section.3}% 5
+\BOOKMARK [2][-]{subsection.3.2}{Parameter\040identification\040methods}{section.3}% 6
+\BOOKMARK [2][-]{subsection.3.3}{Attention\040mechanisms}{section.3}% 7
+\BOOKMARK [2][-]{subsection.3.4}{Problem\040setting}{section.3}% 8
 \BOOKMARK [1][-]{section.4}{Method}{}% 9
-\BOOKMARK [1][-]{section.5}{Experimental setup}{}% 10
+\BOOKMARK [1][-]{section.5}{Experimental\040setup}{}% 10
 \BOOKMARK [1][-]{section.6}{Results}{}% 11
-\BOOKMARK [2][-]{subsection.6.1}{Physics-informed interpretation of attention weights}{section.6}% 12
+\BOOKMARK [2][-]{subsection.6.1}{Physics-informed\040interpretation\040of\040attention\040weights}{section.6}% 12
 \BOOKMARK [1][-]{section.7}{Conclusions}{}% 13
