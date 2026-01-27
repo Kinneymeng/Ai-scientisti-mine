@@ -363,6 +363,59 @@ def plot_noise_sensitivity(all_results, save_path='noise_sensitivity.png'):
     print(f"Saved: {save_path}")
 
 
+def plot_attention_weights_evolution(all_results, save_path='attention_weights_evolution.png'):
+    """
+    Plot evolution of attention weights across training epochs for each feature
+    Creates 4 subplots (one per feature) showing how attention weights change over epochs
+    """
+    feature_names = ['delta', 'velocity', 'beta', 'yaw_rate']
+
+    # Collect attention weights history from all runs
+    runs_with_history = {}
+    for run_name, results in sorted(all_results.items()):
+        if results is None:
+            continue
+        if 'attention_nn' in results and 'attention_weights' in results['attention_nn']:
+            runs_with_history[run_name] = results['attention_nn']['attention_weights']
+
+    if not runs_with_history:
+        print("No attention weights history found")
+        return
+
+    # Create 2x2 subplot grid
+    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+    axes = axes.flatten()
+
+    # Plot each feature in a separate subplot
+    for feature_idx, feature_name in enumerate(feature_names):
+        ax = axes[feature_idx]
+
+        # Plot attention weight evolution for this feature across all runs
+        for run_name, weights_history in runs_with_history.items():
+            # Extract weights for this feature across all epochs
+            feature_weights = [epoch_weights[feature_idx] for epoch_weights in weights_history]
+            epochs = range(len(feature_weights))
+            ax.plot(epochs, feature_weights, label=run_name, alpha=0.8, linewidth=2)
+
+        ax.set_xlabel('Epoch', fontsize=11)
+        ax.set_ylabel('Attention Weight', fontsize=11)
+        ax.set_title(f'Attention Weight: {feature_name}', fontsize=12, fontweight='bold')
+        ax.legend(fontsize=8, loc='best')
+        ax.grid(True, alpha=0.3)
+
+        # Expand y-axis range to make lines at 0 and 1 more visible
+        # Use -0.1 to 1.1 range to provide padding
+        ax.set_ylim(-0.1, 1.1)
+
+        # Add reference line at 0.25 (uniform attention)
+        ax.axhline(y=0.25, color='gray', linestyle='--', alpha=0.5, linewidth=1)
+
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=150, bbox_inches='tight')
+    plt.close()
+    print(f"Saved: {save_path}")
+
+
 def plot_feature_importance_comparison(all_results, save_path='feature_importance_comparison.png'):
     """
     Plot comparison of implicit feature importance in baseline NN vs learned attention weights
@@ -451,6 +504,7 @@ def main():
     plot_training_curves(all_results)
     plot_noise_sensitivity(all_results)
     plot_attention_weights(all_results)
+    plot_attention_weights_evolution(all_results)
     plot_feature_importance_comparison(all_results)
 
     print("\nDone!")

@@ -22,6 +22,7 @@ import numpy as np
 from scipy.integrate import odeint
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 
@@ -177,18 +178,32 @@ class AttentionParameterIdentificationNet(nn.Module):
     """
     Attention-Enhanced Neural Network for parameter identification
     Uses self-attention to weight input features based on their relevance
+
+    IMPROVED VERSION with input normalization to prevent attention saturation
     """
-    def __init__(self, hidden_sizes=[64, 64], activation='relu'):
+    def __init__(self, hidden_sizes=[64, 64], activation='relu', use_input_norm=True):
         super().__init__()
 
         input_size = 4  # delta, v, beta, r
         output_size = 2  # Cf, Cr estimates
 
+        self.use_input_norm = use_input_norm
+
+        # Input normalization layer to prevent scale-dependent attention bias
+        # This ensures all features have similar magnitude before attention computation
+        if self.use_input_norm:
+            self.input_norm = nn.BatchNorm1d(input_size, affine=True, track_running_stats=True)
+
         # Self-attention mechanism for input features
-        self.attention = nn.Sequential(
-            nn.Linear(input_size, input_size),
-            nn.Softmax(dim=1)
-        )
+        # Using small initialization to prevent immediate saturation
+        self.attention_logits = nn.Linear(input_size, input_size)
+        # Small weight initialization for uniform initial attention distribution
+        nn.init.uniform_(self.attention_logits.weight, -0.01, 0.01)
+        nn.init.zeros_(self.attention_logits.bias)
+
+        # Learnable temperature parameter to control attention sharpness
+        # Higher temperature = softer attention distribution
+        self.temperature = nn.Parameter(torch.ones(1) * 5.0)
 
         # Feature transformation layers
         layers = []
@@ -213,10 +228,18 @@ class AttentionParameterIdentificationNet(nn.Module):
         self.scale = 10000.0
 
     def forward(self, x):
-        # Compute attention weights for input features
-        attention_weights = self.attention(x)
-        
-        # Apply attention to input features
+        # Normalize input features to similar scale if enabled
+        if self.use_input_norm:
+            x_norm = self.input_norm(x)
+        else:
+            x_norm = x
+
+        # Compute attention logits and apply temperature-scaled softmax
+        logits = self.attention_logits(x_norm)
+        attention_weights = torch.softmax(logits / torch.clamp(self.temperature, min=0.1), dim=1)
+
+        # Apply attention to ORIGINAL (unnormalized) input features
+        # This preserves the actual feature magnitudes for the network
         x_weighted = x * attention_weights
 
         # Pass through network
