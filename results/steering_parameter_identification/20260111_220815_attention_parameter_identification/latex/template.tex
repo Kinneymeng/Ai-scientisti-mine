@@ -27,15 +27,13 @@
 
 \title{Learning to focus: Attention-enhanced neural networks for robust vehicle parameter identification}
 
-\author{Mengmeng Li\affilnum{1}, Bin Yu\affilnum{1}, Chen Cai\affilnum{2}, and Changyou Chen\affilnum{2}}
+\author{Mengmeng Li\affilnum{1}, Bin Yu\affilnum{1}, Chen Cai\affilnum{2} and Changyou Chen\affilnum{2} }
 
-\affiliation{\affilnum{1}Department of Automotive Engineering, University Name, Country\\
-\affilnum{2}Department of Computer Science, University Name, Country\\
-\affilnum{3}Department of Mechanical Engineering, University Name, Country}
+\affiliation{\affilnum{1}Chassis Control Department, China Changan Automobile Group Co. Ltd., China}
 
-\corrauth{Mengmeng Li, Department of Automotive Engineering, University Name, City, Postal Code, Country.}
+\corrauth{Mengmeng Li, Chassis Control Department, China Changan Automobile Group Co. Ltd., Chongqing, 400000, China.}
 
-\email{mengmeng.li@example.edu}
+\email{1156870605@qq.com}
 
 \begin{abstract}
 Accurate identification of vehicle steering parameters, particularly front and rear cornering stiffness ($C_f$ and $C_r$), is critical for vehicle control systems and safety applications. Traditional methods like least squares estimation struggle with measurement noise, while standard neural networks lack the ability to selectively focus on informative features in noisy data. We propose an attention-enhanced neural network that uses self-attention to learn importance weights for input features. The attention mechanism enables the model to prioritize the most informative features while filtering out noise, addressing a key challenge in robust parameter estimation. Through extensive experiments using a two-degree-of-freedom bicycle model, we demonstrate that the attention-enhanced approach achieves up to 20x lower identification error compared to baseline neural networks at high noise levels (0.05), and perfect identification at moderate noise levels (0.02). While the attention mechanism introduces a performance trade-off at low noise levels (0.01) where the baseline performs slightly better, the learned attention weights provide interpretable insights into feature importance, revealing that the model identifies velocity as a physically critical conditioning variable, consistent with vehicle dynamics theory.
@@ -229,16 +227,7 @@ Figure~\ref{fig:noise_sensitivity} illustrates how the mean parameter identifica
 \label{fig:noise_sensitivity}
 \end{figure}
 
-The learned attention weights provide interpretable insights into which input features are most informative for parameter identification. Figure~\ref{fig:attention_weights} shows the evolution of attention weights during training for the four input features: steering angle ($\delta$), velocity ($v$), sideslip angle ($\beta$), and yaw rate ($r$). The attention mechanism learns to assign different importance weights to each feature based on their relevance to identifying the cornering stiffness parameters.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.8\columnwidth]{attention_weights.png}
-\caption{Evolution of attention weights during training for each input feature. Each line represents a different run, showing how the attention weight for that feature changed over training epochs.}
-\label{fig:attention_weights}
-\end{figure}
-
-Figure~\ref{fig:final_attention} displays the final converged attention weights for each input feature across all runs. Notably, across all noise levels ($\eta \in \{0.01, 0.02, 0.05, 0.1\}$), the attention mechanism learns a consistent feature selection strategy: velocity ($v$) receives an attention weight close to 1.0, while other features ($\delta$, $\beta$, $r$) receive weights close to zero. This stable feature prioritization pattern indicates that the attention mechanism successfully identifies velocity as the most critical feature for parameter identification, consistent with the physical analysis in Section~\ref{sec:physics_interpretation}—velocity serves as a conditioning variable that modulates the influence of cornering stiffness on vehicle motion.
+The learned attention weights provide interpretable insights into which input features are most informative for parameter identification. Figure~\ref{fig:final_attention} displays the final converged attention weights for each input feature across all runs. Notably, across all noise levels ($\eta \in \{0.01, 0.02, 0.05, 0.1\}$), the attention mechanism learns a consistent feature selection strategy: velocity ($v$) receives an attention weight close to 1.0, while other features ($\delta$, $\beta$, $r$) receive weights close to zero. This stable feature prioritization pattern indicates that the attention mechanism successfully identifies velocity as the most critical feature for parameter identification, consistent with the physical analysis in Section~\ref{sec:physics_interpretation}—velocity serves as a conditioning variable that modulates the influence of cornering stiffness on vehicle motion.
 
 \begin{figure}[t]
 \centering
@@ -279,7 +268,7 @@ Figure~\ref{fig:training_curves} displays the training loss curves for the neura
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.9\columnwidth]{training_curves.png}
-\caption{Training and validation loss curves for the neural network-based methods. The left subplot shows the standard neural network training dynamics, while the right subplot shows the attention-enhanced neural network training dynamics. Solid lines represent training loss, while dashed lines represent validation loss. The y-axis uses a logarithmic scale to better visualize convergence behavior.}
+\caption{Training and validation loss curves for the neural network-based methods. The left subplot shows the standard neural network training dynamics, while the right subplot shows the attention-enhanced neural network training dynamics. Solid lines represent training loss, while dashed lines represent validation loss. }
 \label{fig:training_curves}
 \end{figure}
 
@@ -290,7 +279,7 @@ To deepen our understanding of the learned attention mechanism, we analyze the a
 
 \textbf{Theoretical sensitivity analysis.} From the bicycle model equations (Section~\ref{sec:vehicle_model}), we can derive the theoretical sensitivity of vehicle states to cornering stiffness parameters. The sideslip angle $\beta$ and yaw rate $r$ dynamics are directly governed by:
 \begin{equation}
-\dot{\beta} = -\frac{C_f + C_r}{mv}\beta + \left(-1 + \frac{L_f C_f - L_r C_r}{mv^2}\right)r + \frac{C_f}{mv}\delta
+\dot{\beta} = -\frac{C_f + C_r}{mv}\beta - \left(1 + \frac{L_f C_f - L_r C_r}{mv^2}\right)r + \frac{C_f}{mv}\delta
 \end{equation}
 \begin{equation}
 \dot{r} = \frac{L_f C_f - L_r C_r}{I_z}\beta - \frac{L_f^2 C_f + L_r^2 C_r}{I_z v}r + \frac{L_f C_f}{I_z}\delta
