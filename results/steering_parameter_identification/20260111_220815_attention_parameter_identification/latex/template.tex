@@ -231,14 +231,8 @@ F_{yf} = C_f \alpha_f, \quad F_{yr} = C_r \alpha_r
 \label{fig:noise_sensitivity}
 \end{figure}
 
-学习到的注意力权重提供了关于哪些输入特征对参数辨识最具信息量的可解释见解。图~\ref{fig:attention_weights}显示了训练期间四个输入特征的注意力权重演变:转向角($\delta$)、速度($v$)、侧偏角($\beta$)和横摆角速度($r$)。注意力机制学习根据每个特征与辨识侧偏刚度参数的相关性为其分配不同的重要性权重。模型通过学习过程自动发现速度特征对噪声污染更具鲁棒性,并将其作为参数辨识的主要信息来源。
+学习到的注意力权重提供了关于哪些输入特征对参数辨识最具信息量的可解释见解。注意力机制学习根据每个特征与辨识侧偏刚度参数的相关性为其分配不同的重要性权重。
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.8\columnwidth]{attention_weights.png}
-\caption{训练期间每个输入特征的注意力权重演变。每条线代表不同的运行,显示该特征的注意力权重如何在训练轮次中变化。}
-\label{fig:attention_weights}
-\end{figure}
 
 图~\ref{fig:final_attention}显示了所有运行中每个输入特征的最终收敛注意力权重。值得注意的是,在所有噪声水平($\eta \in \{0.01, 0.02, 0.05, 0.1\}$)下,注意力机制都学习到了一致的特征选择策略:速度($v$)获得接近1.0的注意力权重,而其他特征($\delta$、$\beta$、$r$)的权重接近于零。这种稳定的特征优先级模式表明,注意力机制成功识别出速度是参数辨识的最关键特征,这与第~\ref{sec:physics_interpretation}节的物理分析一致——速度作为条件变量调节侧偏刚度对车辆运动的影响。
 
@@ -292,7 +286,7 @@ F_{yf} = C_f \alpha_f, \quad F_{yr} = C_r \alpha_r
 
 \textbf{理论灵敏度分析。} 从自行车模型方程(第~\ref{sec:vehicle_model}节)中,我们可以推导出车辆状态对侧偏刚度参数的理论灵敏度。侧偏角$\beta$和横摆角速度$r$的动态直接由以下方程控制:
 \begin{equation}
-\dot{\beta} = -\frac{C_f + C_r}{mv}\beta + \left(-1 + \frac{L_f C_f - L_r C_r}{mv^2}\right)r + \frac{C_f}{mv}\delta
+\dot{\beta} = -\frac{C_f + C_r}{mv}\beta + \left(-1 - \frac{L_f C_f - L_r C_r}{mv^2}\right)r + \frac{C_f}{mv}\delta
 \end{equation}
 \begin{equation}
 \dot{r} = \frac{L_f C_f - L_r C_r}{I_z}\beta - \frac{L_f^2 C_f + L_r^2 C_r}{I_z v}r + \frac{L_f C_f}{I_z}\delta
