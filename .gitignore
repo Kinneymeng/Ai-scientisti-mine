@@ -169,3 +169,11 @@ data/
 *ckpt.pt
 *.zip
 ICLR2022-OpenReviewData/
+ai_scientist_env/
+
+# LaTeX auxiliary files
+*.aux
+*.out
+*.log
+*.bbl
+*.blg
