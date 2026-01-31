@@ -1,0 +1,38 @@
+{
+  "ls_cf_error": {
+    "means": 1.5253586477292447,
+    "stds": 0.0
+  },
+  "ls_cr_error": {
+    "means": 1.7006643457107162,
+    "stds": 0.0
+  },
+  "nn_cf_error": {
+    "means": 0.03365234375,
+    "stds": 0.0
+  },
+  "nn_cr_error": {
+    "means": 0.044383680555555555,
+    "stds": 0.0
+  },
+  "nn_mean_error": {
+    "means": 0.03901801215277778,
+    "stds": 0.0
+  },
+  "attn_cf_error": {
+    "means": 0.0018359375000000001,
+    "stds": 0.0
+  },
+  "attn_cr_error": {
+    "means": 0.001875,
+    "stds": 0.0
+  },
+  "attn_mean_error": {
+    "means": 0.00185546875,
+    "stds": 0.0
+  },
+  "best_method": {
+    "means": 1,
+    "stds": 0.0
+  }
+}
